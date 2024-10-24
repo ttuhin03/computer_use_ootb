@@ -1,4 +1,4 @@
-# 💻 Computer Use - OOTB
+# Computer Use - OOTB
 
 ## 🌟 Overview
 This is an out-of-the-box (OOTB) solution for Claude's new computer use APIs designed to streamline and enhance computer usage. This project offers a user-friendly interface based on Gradio. 🎨
