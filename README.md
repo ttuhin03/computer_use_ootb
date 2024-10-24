@@ -40,7 +40,7 @@ A website will open at http://localhost:7860/. Enter the Anthropic API key (you 
 - **Potential Dangerous Operations by the Model**: The models' performance is still limited and may generate unintended or potentially harmful outputs. Recommend continuously monitoring the AI's actions. 
 - **Cost Control Challenges**: Each task may cost a few dollars. We'll optimize this in the future. 💸
 
-## 📅 Release Plan
+## 📅 Roadmap
 
 - [ ] **Interface Design**
   - [x] **Support for Gradio** ✨
