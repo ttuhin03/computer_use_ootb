@@ -7,6 +7,10 @@ This is an out-of-the-box (OOTB) solution for Claude's new **Computer Use** APIs
 
 ## 🚀 Getting Started
 
+### Prerequisites
+
+- Python version **3.11** or higher is required to run this project.
+
 ### 1. Clone the Repository 📂
 ```bash
 git clone https://github.com/showlab/computer_use_ootb.git
@@ -20,7 +24,7 @@ pip install -r dev-requirements.txt
 
 ### 3. Run the API ▶️
 ```bash
-python api.py
+python app.py
 ```
 A website will open; follow the prompts to proceed.
 
