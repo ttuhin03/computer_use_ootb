@@ -7,7 +7,7 @@ This is an out-of-the-box (OOTB) solution for Claude's new **Computer Use** APIs
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### 0. Prerequisites
 
 - Python version **3.11** or higher is required to run this project.
 
