@@ -8,10 +8,11 @@ This is an out-of-the-box (OOTB) solution for Claude's new **Computer Use** APIs
 ## 🚀 Getting Started
 
 ### 0. Prerequisites
-
-- Python version **3.11** or higher is required to run this project.
+- Instal Miniconda on your system through this [link](https://www.anaconda.com/download?utm_source=anacondadocs&utm_medium=documentation&utm_campaign=download&utm_content=topnavalldocs). (Recommand Python Version: >= **3.11**).
 
 ### 1. Clone the Repository 📂
+Open the Conda Terminal. (After installation Of Miniconda, it will appear in the Start menu.)
+Run the following command on **Conda Terminal**.
 ```bash
 git clone https://github.com/showlab/computer_use_ootb.git
 cd computer_use_ootb
@@ -26,7 +27,7 @@ pip install -r dev-requirements.txt
 ```bash
 python app.py
 ```
-A website will open; follow the prompts to proceed.
+A website will open at http://localhost:7860/. Enter the Anthropic API key (you can obtain it through this website), then give commands to let the AI perform your tasks."
 
 ![gradio_interface](./assets/gradio_interface.png)
 
@@ -34,8 +35,8 @@ A website will open; follow the prompts to proceed.
 - **Windows** ✅
 
 ## ⚠️ Risks
-- **Potential Dangerous Operations by the Model**: Advanced models have the capability to generate unintended or potentially harmful outputs. To mitigate this risk, it is essential to implement strict safety checks, filters, and user constraints on potentially risky actions or prompts.
-- **Cost Control Challenges**: Enhanced features and more sophisticated models may lead to increased operational costs. Regular monitoring of API usage and expenses is critical to prevent budget overruns. It is vital to carefully balance improvements and cost-efficiency. 💸
+- **Potential Dangerous Operations by the Model**: The models' performance is still limited and may generate unintended or potentially harmful outputs. Recommend continuously monitoring the AI's actions. 
+- **Cost Control Challenges**: Each task may cost a few dollars. We'll optimize this in the future. 💸
 
 ## 📅 Release Plan
 
