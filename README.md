@@ -41,15 +41,15 @@ A website will open; follow the prompts to proceed.
 
 - [ ] **Interface Design**
   - [x] **Support for Gradio** ✨
-  - [ ] **Simpler Installation**: Streamline the installation process for faster setup.
+  - [ ] **Simpler Installation**
   - [ ] **More Features**... 🚀
 - [ ] **Platform**
   - [x] **Windows** 🖥️
   - [ ] **Mac** 🍎
 - [ ] **Support for More MLLMs**
   - [x] **Claude 3.5 Sonnet** 🎵
-  - [ ] **GPT-4o**: Integration with GPT-4o for enhanced capabilities.
-  - [ ] **Qwen2-VL**: Support for Qwen-2VL to improve visual and multimodal understanding. 📸
+  - [ ] **GPT-4o**
+  - [ ] **Qwen2-VL**
   - [ ] ...
 - [ ] **Improved Prompting Strategy**
   - [ ] Optimize prompts for cost-efficiency. 💡
