@@ -29,7 +29,7 @@ pip install -r dev-requirements.txt
 ```bash
 python app.py
 ```
-A website will open at http://localhost:7860/. Enter the Anthropic API key (you can obtain it through this website), then give commands to let the AI perform your tasks."
+A website will open at http://localhost:7860/. Enter the Anthropic API key (you can obtain it through this [website](https://console.anthropic.com/settings/keys)), then give commands to let the AI perform your tasks."
 
 ![gradio_interface](./assets/gradio_interface.png)
 
