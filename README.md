@@ -3,8 +3,6 @@
 ## 🌟 Overview
 This is an out-of-the-box (OOTB) solution for Claude's new **Computer Use** APIs designed to streamline and enhance computer usage. This project offers a user-friendly interface based on Gradio. 🎨
 
-![gradio_interface](./assets/gradio_interface.png)
-
 ## 🚀 Getting Started
 
 ### 0. Prerequisites
@@ -27,6 +25,8 @@ pip install -r dev-requirements.txt
 python app.py
 ```
 A website will open; follow the prompts to proceed.
+
+![gradio_interface](./assets/gradio_interface.png)
 
 ## 🖥️ Supported Systems
 - **Windows** ✅
