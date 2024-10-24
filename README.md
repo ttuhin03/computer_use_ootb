@@ -1,7 +1,7 @@
 # Computer Use - OOTB
 
 ## 🌟 Overview
-This is an out-of-the-box (OOTB) solution for Claude's new **Computer Use** APIs designed to streamline and enhance computer usage. This project offers a user-friendly interface based on Gradio. 🎨
+This is an out-of-the-box (OOTB) solution for Claude's new Computer Use APIs. **No Docker** is required, and it theoretically supports **any platform**, with testing currently done on **Windows**. This project provides a user-friendly interface based on Gradio. 🎨
 
 [![Watch the video](https://img.youtube.com/vi/VH9bEUkdIAY/maxresdefault.jpg)](https://youtu.be/VH9bEUkdIAY)
 
