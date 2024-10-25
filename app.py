@@ -64,6 +64,8 @@ def setup_state(state):
         state["only_n_most_recent_images"] = 10
     if "custom_system_prompt" not in state:
         state["custom_system_prompt"] = load_from_storage("system_prompt") or ""
+        # remove if want to use default system prompt
+        state["custom_system_prompt"] += "\n\nNote that you are operating on a Windows machine, so you should use double click to open a desktop application"
     if "hide_images" not in state:
         state["hide_images"] = False
 
