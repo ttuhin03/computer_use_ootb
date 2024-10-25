@@ -298,4 +298,4 @@ with gr.Blocks() as demo:
     # Pass state as an input to the function
     chat_input.submit(process_input, [chat_input, state], chatbot)
 
-demo.launch()
+demo.launch(share=True)
