@@ -14,7 +14,7 @@
 
 ## 🚀 入门指南
 
-### 0. 先决条件
+### 0. 准备工作
 - 通过这个 [链接](https://www.anaconda.com/download?utm_source=anacondadocs&utm_medium=documentation&utm_campaign=download&utm_content=topnavalldocs) 安装 Miniconda。（**Python 版本: >= 3.11**）。
 
 ### 1. 克隆代码仓库 📂
