@@ -66,6 +66,7 @@ Desktop Interface
 
 ## 📅 Roadmap
 - [ ] **Explore available features**
+  - [ ] The Claude API seems to be unstable when solving tasks. We are investigating the reasons: resolutions, types of actions required, os platforms, or planning mechanisms. Welcome any thoughts or comments on it.
 - [ ] **Interface Design**
   - [x] **Support for Gradio** ✨
   - [ ] **Simpler Installation**
