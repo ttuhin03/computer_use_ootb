@@ -10,7 +10,9 @@ This is an out-of-the-box (OOTB) solution for Claude's new Computer Use APIs.
 
 ## Demo Video
 
-[![Watch the video](https://img.youtube.com/vi/VH9bEUkdIAY/maxresdefault.jpg)](https://youtu.be/VH9bEUkdIAY)
+[![Watch the video](https://img.youtube.com/vi/Ychd-t24HZw/maxresdefault.jpg)](https://youtu.be/Ychd-t24HZw)
+
+[![Watch the video](https://img.youtube.com/vi/cvgPBazxLFM/maxresdefault.jpg)](https://youtu.be/cvgPBazxLFM)
 
 ## 🚀 Getting Started
 
@@ -83,6 +85,7 @@ Desktop Interface
 
 ## Join Discussion
 Welcome to discuss with us and continuously improve the user experience of Computer Use - OOTB. Reach us using this [Discord Channel](https://discord.gg/9GQkyWer) or the WeChat QR code below!
+
 <img src="./assets/group_chat.jpg" alt="gradio_interface" width="30%">
 
 
