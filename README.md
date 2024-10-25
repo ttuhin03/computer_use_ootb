@@ -71,8 +71,8 @@ Desktop Interface
 - [ ] **Platform**
   - [x] **Windows** 
   - [x] **Mobile** (Send command)
+  - [ ] **Mac**
   - [ ] **Mobile** (Be controlled)
-  - [ ] **Mac** 
 - [ ] **Support for More MLLMs**
   - [x] **Claude 3.5 Sonnet** 🎵
   - [ ] **GPT-4o**
