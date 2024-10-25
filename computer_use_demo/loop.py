@@ -1,7 +1,7 @@
 """
 Agentic sampling loop that calls the Anthropic API and local implenmentation of anthropic-defined computer use tools.
 """
-
+import asyncio
 import platform
 from collections.abc import Callable
 from datetime import datetime
@@ -21,8 +21,16 @@ from anthropic.types.beta import (
     BetaTextBlockParam,
     BetaToolResultBlockParam,
 )
+from anthropic.types import TextBlock
+from anthropic.types.beta import BetaMessage, BetaTextBlock, BetaToolUseBlock
 
 from .tools import BashTool, ComputerTool, EditTool, ToolCollection, ToolResult
+
+from PIL import Image
+from io import BytesIO
+import gradio as gr
+from typing import Dict
+
 
 BETA_FLAG = "computer-use-2024-10-22"
 
@@ -50,6 +58,31 @@ SYSTEM_PROMPT = f"""<SYSTEM_CAPABILITY>
 * The current date is {datetime.today().strftime('%A, %B %d, %Y')}.
 </SYSTEM_CAPABILITY>
 """
+
+import base64
+from PIL import Image
+from io import BytesIO
+def decode_base64_image_and_save(base64_str):
+    # 移除base64字符串的前缀（如果存在）
+    if base64_str.startswith("data:image"):
+        base64_str = base64_str.split(",")[1]
+    # 解码base64字符串并将其转换为PIL图像
+    image_data = base64.b64decode(base64_str)
+    image = Image.open(BytesIO(image_data))
+    # 保存图像为screenshot.png
+    import datetime
+    image.save(f"{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png")
+    print("screenshot saved")
+    return f"{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png"
+
+def decode_base64_image(base64_str):
+    # 移除base64字符串的前缀（如果存在）
+    if base64_str.startswith("data:image"):
+        base64_str = base64_str.split(",")[1]
+    # 解码base64字符串并将其转换为PIL图像
+    image_data = base64.b64decode(base64_str)
+    image = Image.open(BytesIO(image_data))
+    return image
 
 
 async def sampling_loop(
@@ -124,6 +157,108 @@ async def sampling_loop(
                     _make_api_tool_result(result, content_block.id)
                 )
                 tool_output_callback(result, content_block.id)
+
+        if not tool_result_content:
+            return messages
+
+        messages.append({"content": tool_result_content, "role": "user"})
+
+
+def sampling_loop_sync(
+    *,
+    model: str,
+    provider: APIProvider,
+    system_prompt_suffix: str,
+    messages: list[BetaMessageParam],
+    output_callback: Callable[[BetaContentBlock], None],
+    tool_output_callback: Callable[[ToolResult, str], None],
+    api_response_callback: Callable[[APIResponse[BetaMessage]], None],
+    api_key: str,
+    only_n_most_recent_images: int | None = None,
+    max_tokens: int = 4096,
+):
+    """
+    Synchronous agentic sampling loop for the assistant/tool interaction of computer use.
+    """
+    tool_collection = ToolCollection(
+        ComputerTool(),
+        BashTool(),
+        EditTool(),
+    )
+    system = (
+        f"{SYSTEM_PROMPT}{' ' + system_prompt_suffix if system_prompt_suffix else ''}"
+    )
+
+    while True:
+        if only_n_most_recent_images:
+            _maybe_filter_to_n_most_recent_images(messages, only_n_most_recent_images)
+
+        # Instantiate the appropriate API client based on the provider
+        if provider == APIProvider.ANTHROPIC:
+            client = Anthropic(api_key=api_key)
+        elif provider == APIProvider.VERTEX:
+            client = AnthropicVertex()
+        elif provider == APIProvider.BEDROCK:
+            client = AnthropicBedrock()
+
+        # Call the API synchronously
+        raw_response = client.beta.messages.with_raw_response.create(
+            max_tokens=max_tokens,
+            messages=messages,
+            model=model,
+            system=system,
+            tools=tool_collection.to_params(),
+            betas=["computer-use-2024-10-22"],
+        )
+
+        api_response_callback(cast(APIResponse[BetaMessage], raw_response))
+
+        response = raw_response.parse()
+
+        # Append new assistant message
+        new_message = {
+            "role": "assistant",
+            "content": cast(list[BetaContentBlockParam], response.content),
+        }
+        messages.append(new_message)
+
+        tool_result_content: list[BetaToolResultBlockParam] = []
+        for content_block in cast(list[BetaContentBlock], response.content):
+            output_callback(content_block)
+            if content_block.type == "tool_use":
+                # Run the asynchronous tool execution in a synchronous context
+                result = asyncio.run(tool_collection.run(
+                    name=content_block.name,
+                    tool_input=cast(dict[str, Any], content_block.input),
+                ))
+                tool_result_content.append(
+                    _make_api_tool_result(result, content_block.id)
+                )
+                tool_output_callback(result, content_block.id)
+
+            # Craft messages based on the content_block
+            res = []
+            for msg in messages:
+                try:
+                    if isinstance(msg["content"][0], TextBlock):
+                        res.append((msg["content"][0].text, None))  # User message
+                    elif isinstance(msg["content"][0], BetaTextBlock):
+                        res.append((None, msg["content"][0].text))  # Bot message
+                    elif isinstance(msg["content"][0], BetaToolUseBlock):
+                        res.append((None, f"Tool Use: {msg['content'][0].name}\nInput: {msg['content'][0].input}"))  # Bot message
+                    elif isinstance(msg["content"][0], Dict) and msg["content"][0]["content"][-1]["type"] == "image":
+                        # image_path = decode_base64_image_and_save(msg["content"][0]["content"][-1]["source"]["data"])
+                        # res.append((None, gr.Image(image_path)))  # Bot message
+                        res.append((None, f'<img src="data:image/png;base64,{msg["content"][0]["content"][-1]["source"]["data"]}">'))  # Bot message
+                    else:
+                        print(msg["content"][0])
+                except Exception as e:
+                    print("error", e)
+                    pass
+            
+            # Yield crafted messages
+            for user_msg, bot_msg in res:
+                yield [user_msg, bot_msg]
 
         if not tool_result_content:
             return messages
