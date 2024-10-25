@@ -41,8 +41,9 @@ If you successfully start the interface, you will see two URLs in the terminal:
 ```
 
 ## 4. Control Your Computer with Any Device can Access the Internet
-**Computer to be controlled**: The one installed software.
-**Device Send Command**: The one opens the website
+- **Computer to be controlled**: The one installed software.
+- **Device Send Command**: The one opens the website
+  
 Open the website at http://localhost:7860/ (if you're controlling the computer itself) or https://71xxxxxxxxxxxxxxx.gradio.live in your mobile browser for remote control.
 
 Enter the Anthropic API key (you can obtain it through this [website](https://console.anthropic.com/settings/keys)), then give commands to let the AI perform your tasks.
