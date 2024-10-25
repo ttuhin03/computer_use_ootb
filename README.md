@@ -6,7 +6,7 @@ This is an out-of-the-box (OOTB) solution for Claude's new Computer Use APIs.
 **No Docker** is required, and it theoretically supports **any platform**, with testing currently done on **Windows**. This project provides a user-friendly interface based on Gradio. 🎨
 
 ## Update
-- 10-25: Now you can **Remotely Control** your computer 💻 through your mobile device 📱 —**No Mobile App Installation** required! Give it a try and have fun 🎉.
+- 10-25: Now you can **Remotely Control** your computer 💻 through your mobile device 📱 — **No Mobile App Installation** required! Give it a try and have fun 🎉.
 
 ## Demo Video
 
@@ -63,7 +63,7 @@ Desktop Interface
 - **Cost Control Challenges**: Each task may cost a few dollars. We'll optimize this in the future. 💸
 
 ## 📅 Roadmap
-
+- [ ] **Explore available features**
 - [ ] **Interface Design**
   - [x] **Support for Gradio** ✨
   - [ ] **Simpler Installation**
@@ -80,5 +80,13 @@ Desktop Interface
   - [ ] ...
 - [ ] **Improved Prompting Strategy**
   - [ ] Optimize prompts for cost-efficiency. 💡
+
+## Join Discussion
+Welcome to discuss with us and continuously improve the user experience of Computer Use - OOTB. Reach us using this [Discord Channel](https://discord.gg/9GQkyWer) or the WeChat QR code below!
+
+![Wechat_group](./assets/group_chat.jpg)
+
+
+
 
 
