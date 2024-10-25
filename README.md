@@ -6,7 +6,7 @@ This is an out-of-the-box (OOTB) solution for Claude's new Computer Use APIs.
 **No Docker** is required, and it theoretically supports **any platform**, with testing currently done on **Windows**. This project provides a user-friendly interface based on Gradio. 🎨
 
 ## Update
-- 10-25: Now you can **Remotely Control** your computer 💻 through your mobile device 📱 —**No App Installation** required! Give it a try and have fun 🎉.
+- 10-25: Now you can **Remotely Control** your computer 💻 through your mobile device 📱 —**No App Installation** required! (Thanks to Gradio for their awesome web framework!) Give it a try and have fun 🎉.
 
 ## Demo Video
 
@@ -48,7 +48,8 @@ Open the website at http://localhost:7860/ (if you're controlling the computer i
 Enter the Anthropic API key (you can obtain it through this [website](https://console.anthropic.com/settings/keys)), then give commands to let the AI perform your tasks.
 
 Mobile Interface
-![gradio_interface](./assets/gradio_mobile.jpg){ width=30% }
+
+<img src="./assets/gradio_mobile.jpg" alt="gradio_interface" width="30%">
 
 Desktop Interface
 ![gradio_interface](./assets/gradio_interface.png)
@@ -76,4 +77,5 @@ Desktop Interface
   - [ ] ...
 - [ ] **Improved Prompting Strategy**
   - [ ] Optimize prompts for cost-efficiency. 💡
+
 
