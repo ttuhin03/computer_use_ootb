@@ -83,8 +83,7 @@ Desktop Interface
 
 ## Join Discussion
 Welcome to discuss with us and continuously improve the user experience of Computer Use - OOTB. Reach us using this [Discord Channel](https://discord.gg/9GQkyWer) or the WeChat QR code below!
-
-![Wechat_group](./assets/group_chat.jpg)
+<img src="./assets/group_chat.jpg" alt="gradio_interface" width="30%">
 
 
 
