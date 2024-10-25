@@ -48,6 +48,7 @@ Open the website at http://localhost:7860/ (if you're controlling the computer i
 Enter the Anthropic API key (you can obtain it through this [website](https://console.anthropic.com/settings/keys)), then give commands to let the AI perform your tasks.
 
 Mobile Interface
+![gradio_interface](./assets/gradio_mobile.jpg)
 
 Desktop Interface
 ![gradio_interface](./assets/gradio_interface.png)
