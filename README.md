@@ -8,7 +8,7 @@ This is an out-of-the-box (OOTB) solution for Claude's new Computer Use APIs.
 ## Update
 10-25: Now you can **remotely control** your Computer through your Mobile.
 
-## Demo video
+## Demo Video
 
 [![Watch the video](https://img.youtube.com/vi/VH9bEUkdIAY/maxresdefault.jpg)](https://youtu.be/VH9bEUkdIAY)
 
@@ -37,6 +37,8 @@ python app.py
 A website will open at http://localhost:7860/. Enter the Anthropic API key (you can obtain it through this [website](https://console.anthropic.com/settings/keys)), then give commands to let the AI perform your tasks."
 
 ![gradio_interface](./assets/gradio_interface.png)
+
+## 4. To Use
 
 ## 🖥️ Supported Systems
 - **Windows** ✅
