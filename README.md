@@ -8,6 +8,8 @@ This is an out-of-the-box (OOTB) solution for Claude's new Computer Use APIs.
 ## Update
 10-25: Now you can **remotely control** your Computer through your Mobile.
 
+## Demo video
+
 [![Watch the video](https://img.youtube.com/vi/VH9bEUkdIAY/maxresdefault.jpg)](https://youtu.be/VH9bEUkdIAY)
 
 ## 🚀 Getting Started
