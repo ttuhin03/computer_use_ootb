@@ -15,7 +15,7 @@ This is an out-of-the-box (OOTB) solution for Claude's new Computer Use APIs.
 ## 🚀 Getting Started
 
 ### 0. Prerequisites
-- Instal Miniconda on your system through this [link](https://www.anaconda.com/download?utm_source=anacondadocs&utm_medium=documentation&utm_campaign=download&utm_content=topnavalldocs). (Recommand Python Version: >= **3.11**).
+- Instal Miniconda on your system through this [link](https://www.anaconda.com/download?utm_source=anacondadocs&utm_medium=documentation&utm_campaign=download&utm_content=topnavalldocs). (**Python Version: >= 3.11**).
 
 ### 1. Clone the Repository 📂
 Open the Conda Terminal. (After installation Of Miniconda, it will appear in the Start menu.)
