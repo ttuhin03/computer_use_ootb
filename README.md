@@ -6,7 +6,7 @@ This is an out-of-the-box (OOTB) solution for Claude's new Computer Use APIs.
 **No Docker** is required, and it theoretically supports **any platform**, with testing currently done on **Windows**. This project provides a user-friendly interface based on Gradio. 🎨
 
 ## Update
-- 10-25: Now you can **Remotely Control** your computer 💻 through your mobile device 📱 —**No App Installation** required! (Thanks to Gradio for their awesome web framework!) Give it a try and have fun 🎉.
+- 10-25: Now you can **Remotely Control** your computer 💻 through your mobile device 📱 —**No App Installation** required! Give it a try and have fun 🎉.
 
 ## Demo Video
 
