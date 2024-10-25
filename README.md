@@ -6,7 +6,7 @@ This is an out-of-the-box (OOTB) solution for Claude's new Computer Use APIs.
 **No Docker** is required, and it theoretically supports **any platform**, with testing currently done on **Windows**. This project provides a user-friendly interface based on Gradio. 🎨
 
 ## Update
-10-25: Now you can **remotely control** your Computer through your Mobile.
+10-25: Now you can **Remotely Control** your computer 💻 through your mobile device 📱 —**No App Installation** required! Give it a try and have fun 🎉.
 
 ## Demo Video
 
@@ -30,15 +30,27 @@ cd computer_use_ootb
 pip install -r dev-requirements.txt
 ```
 
-### 3. Run the API ▶️
+### 3. Start the Interface ▶️
 ```bash
 python app.py
 ```
-A website will open at http://localhost:7860/. Enter the Anthropic API key (you can obtain it through this [website](https://console.anthropic.com/settings/keys)), then give commands to let the AI perform your tasks."
+If you successfully start the interface, you will see two URLs in the terminal:
+```bash
+* Running on local URL:  http://127.0.0.1:7860
+* Running on public URL: https://xxxxxxxxxxxxxxxx.gradio.live
+```
 
+## 4. Control Your Computer with Any Device can Access the Internet
+**Computer to be controlled**: The one installed software.
+**Device Send Command**: The one opens the website
+Open the website at http://localhost:7860/ (if you're controlling the computer itself) or https://71xxxxxxxxxxxxxxx.gradio.live in your mobile browser for remote control.
+
+Enter the Anthropic API key (you can obtain it through this [website](https://console.anthropic.com/settings/keys)), then give commands to let the AI perform your tasks.
+
+Mobile Interface
+
+Desktop Interface
 ![gradio_interface](./assets/gradio_interface.png)
-
-## 4. To Use
 
 ## 🖥️ Supported Systems
 - **Windows** ✅
