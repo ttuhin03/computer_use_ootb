@@ -1,5 +1,4 @@
 # Computer Use - OOTB
-## 📋 [English Version](#overview) | [中文版](docs/README_Chinese.md)
 
 ## 🌟 Overview
 This is an out-of-the-box (OOTB) solution for Claude's new Computer Use APIs. 
