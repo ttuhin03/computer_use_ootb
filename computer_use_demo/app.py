@@ -164,13 +164,10 @@ def _render_message(sender: Sender, message: str | BetaTextBlock | BetaToolUseBl
 from PIL import Image
 from io import BytesIO
 def decode_base64_image(base64_str):
-    # 移除base64字符串的前缀（如果存在）
     if base64_str.startswith("data:image"):
         base64_str = base64_str.split(",")[1]
-    # 解码base64字符串并将其转换为PIL图像
     image_data = base64.b64decode(base64_str)
     image = Image.open(BytesIO(image_data))
-    # 保存图像为screenshot.png
     import datetime
     image.save(f"{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png")
     print("screenshot saved")
