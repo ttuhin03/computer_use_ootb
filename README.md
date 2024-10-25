@@ -69,8 +69,10 @@ Desktop Interface
   - [ ] **Simpler Installation**
   - [ ] **More Features**... 🚀
 - [ ] **Platform**
-  - [x] **Windows** 🖥️
-  - [ ] **Mac** 🍎
+  - [x] **Windows** 
+  - [x] **Mobile** (Send command)
+  - [ ] **Mobile** (Be controlled)
+  - [ ] **Mac** 
 - [ ] **Support for More MLLMs**
   - [x] **Claude 3.5 Sonnet** 🎵
   - [ ] **GPT-4o**
