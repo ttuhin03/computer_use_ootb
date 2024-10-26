@@ -21,6 +21,7 @@ from computer_use_demo.loop import (
     PROVIDER_TO_DEFAULT_MODEL_NAME,
     APIProvider,
     sampling_loop,
+    sampling_loop_sync,
 )
 
 from computer_use_demo.tools import ToolResult
@@ -63,6 +64,8 @@ def setup_state(state):
         state["only_n_most_recent_images"] = 10
     if "custom_system_prompt" not in state:
         state["custom_system_prompt"] = load_from_storage("system_prompt") or ""
+        # remove if want to use default system prompt
+        state["custom_system_prompt"] += "\n\nNote that you are operating on a Windows machine, so you should use double click to open a desktop application"
     if "hide_images" not in state:
         state["hide_images"] = False
 
@@ -160,23 +163,11 @@ def _render_message(sender: Sender, message: str | BetaTextBlock | BetaToolUseBl
     else:
         return message
 # open new tab, open google sheets inside, then create a new blank spreadsheet
-from PIL import Image
-from io import BytesIO
-def decode_base64_image(base64_str):
-    if base64_str.startswith("data:image"):
-        base64_str = base64_str.split(",")[1]
-    image_data = base64.b64decode(base64_str)
-    image = Image.open(BytesIO(image_data))
-    import datetime
-    image.save(f"{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png")
-    print("screenshot saved")
-    return f"{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png"
-
 
 def process_input(user_input, state):
     # Ensure the state is properly initialized
     setup_state(state)
-    
+
     # Append the user input to the messages in the state
     state["messages"].append(
         {
@@ -185,62 +176,32 @@ def process_input(user_input, state):
         }
     )
 
-    # Run the sampling loop asynchronously
-    asyncio.run(sampling_loop_wrapper(state))
-
-    # Return the conversation so far
-    # return [msg["content"][0]["text"] for msg in state["messages"]]
-    # res = []
-    # for i in range(0, len(state["messages"]), 2):
-    #     try:
-    #         # Create a pair from the current and next message (if it exists)
-    #         pair = []
-    #         if "content" in state["messages"][i]:
-    #             pair.append(state["messages"][i]["content"][0].text)  # Add the first message's content
-    #         if i + 1 < len(state["messages"]) and "content" in state["messages"][i + 1]:
-    #             pair.append(state["messages"][i + 1]["content"][0].text)  # Add the second message's content
-
-    #         # Add the pair to the result list if it contains at least one message
-    #         if pair:
-    #             res.append(pair)
-    #     except Exception as e:
-    #         # Handle exceptions and continue with the next pair
-    #         pass
-    res = []
-    for msg in state["messages"]:
-        try:
-            if isinstance(msg["content"][0], TextBlock):
-                res.append((msg["content"][0].text, None))
-            elif isinstance(msg["content"][0], BetaTextBlock):
-                res.append((None, msg["content"][0].text))
-            elif isinstance(msg["content"][0], BetaToolUseBlock):
-                res.append((None, f"Tool Use: {msg['content'][0].name}\nInput: {msg['content'][0].input}"))
-            elif isinstance(msg["content"][0], Dict) and msg["content"][0]["content"][0]["type"] == "image":
-                with open("D:\\msg.txt", "w") as f:
-                    f.write(str(msg["content"][0]))
-                # res.append((None, msg["content"][0]["text"]))
-                # print(msg["content"][0]["content"][0]["data"][:100])
-                image_path = decode_base64_image(msg["content"][0]["content"][0]["source"]["data"])
-                res.append((None, gr.Image(image_path)))
-                # res.append((None, f'The screenshot is: <img src="data:image/png;base64,{msg["content"][0]["content"][0]["data"]}">'))
-            else:
-                # res.append((None, f'The screenshot is: <img src="data:image/png;base64,{msg["content"][0]["content"][0]["data"]}">'))
-                # res.append((None, "screenshot above"))
-                # res.append(msg["content"][0])
-                print(msg["content"][0])
-        except Exception as e:
-            print("error", e)
-            pass
-            # print(msg["content"])
-    return res
+    # Run the sampling loop synchronously and yield messages
+    for message in sampling_loop(state):
+        yield message
 
 
-async def sampling_loop_wrapper(state):
+def accumulate_messages(*args, **kwargs):
+    """
+    Wrapper function to accumulate messages from sampling_loop_sync.
+    """
+    accumulated_messages = []
+    
+    for message in sampling_loop_sync(*args, **kwargs):
+        # Check if the message is already in the accumulated messages
+        if message not in accumulated_messages:
+            accumulated_messages.append(message)
+            # Yield the accumulated messages as a list
+            yield accumulated_messages
+
+
+def sampling_loop(state):
     # Ensure the API key is present
     if not state.get("api_key"):
         raise ValueError("API key is missing. Please set it in the environment or storage.")
-    
-    await sampling_loop(
+
+    # Call the sampling loop and yield messages
+    for message in accumulate_messages(
         system_prompt_suffix=state["custom_system_prompt"],
         model=state["model"],
         provider=state["provider"],
@@ -248,9 +209,10 @@ async def sampling_loop_wrapper(state):
         output_callback=partial(_render_message, Sender.BOT, state=state),
         tool_output_callback=partial(_tool_output_callback, tool_state=state["tools"]),
         api_response_callback=partial(_api_response_callback, response_state=state["responses"]),
-        api_key=state["api_key"],  # Pass the API key here
+        api_key=state["api_key"],
         only_n_most_recent_images=state["only_n_most_recent_images"],
-    )
+    ):
+        yield message
 
 
 with gr.Blocks() as demo:
