@@ -46,7 +46,6 @@ def setup_state(state):
         # Try to load API key from file first, then environment
         state["api_key"] = load_from_storage("api_key") or os.getenv("ANTHROPIC_API_KEY", "")
         if not state["api_key"]:
-            state["api_key"] = "YOUR_API_KEY_HERE"
             print("API key not found. Please set it in the environment or storage.")
     if "provider" not in state:
         state["provider"] = os.getenv("API_PROVIDER", "anthropic") or APIProvider.ANTHROPIC
@@ -250,6 +249,7 @@ with gr.Blocks() as demo:
         )
         hide_images = gr.Checkbox(label="Hide screenshots", value=False)
 
+    api_key.change(fn=lambda key: save_to_storage(API_KEY_FILE, key), inputs=api_key)
     chat_input = gr.Textbox(label="Type a message to send to Claude...")
     # chat_output = gr.Textbox(label="Chat Output", interactive=False)
     chatbot = gr.Chatbot(label="Chatbot History")
