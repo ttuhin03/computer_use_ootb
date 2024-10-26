@@ -162,7 +162,6 @@ def _render_message(sender: Sender, message: str | BetaTextBlock | BetaToolUseBl
         return message
 # open new tab, open google sheets inside, then create a new blank spreadsheet
 
-
 def process_input(user_input, state):
     # Ensure the state is properly initialized
     setup_state(state)
