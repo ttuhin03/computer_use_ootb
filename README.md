@@ -42,7 +42,7 @@ If you successfully start the interface, you will see two URLs in the terminal:
 * Running on public URL: https://xxxxxxxxxxxxxxxx.gradio.live (Do not share this link with others, or they will be able to control your computer.)
 ```
 
-## 4. Control Your Computer with Any Device can Access the Internet
+### 4. Control Your Computer with Any Device can Access the Internet
 - **Computer to be controlled**: The one installed software.
 - **Device Send Command**: The one opens the website.
   
