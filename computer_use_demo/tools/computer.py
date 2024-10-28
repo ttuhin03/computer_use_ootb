@@ -183,7 +183,6 @@ class ComputerTool(BaseAnthropicTool):
                 elif action == "double_click":
                     pyautogui.doubleClick()
                 return ToolResult(output=f"Performed {action}")
-
         raise ToolError(f"Invalid action: {action}")
 
     async def screenshot(self):
@@ -242,7 +241,7 @@ class ComputerTool(BaseAnthropicTool):
     def get_screen_size(self):
         if platform.system() == "Windows":
             # Command to get screen resolution on Windows
-            cmd = "wmic path Win32_VideoController get CurrentHorizontalResolution,CurrentVerticalResolution"
+            cmd = "wmic path Win32_VideoController get CurrentHorizontalResolution,CurrentVerticalResolution /format:value"
         elif platform.system() == "Darwin":  # macOS
             cmd = "system_profiler SPDisplaysDataType | grep Resolution"
         else:  # Linux or other OS
@@ -252,8 +251,24 @@ class ComputerTool(BaseAnthropicTool):
             output = subprocess.check_output(cmd, shell=True).decode()
             
             if platform.system() == "Windows":
-                lines = output.strip().split('\n')[1:]  # Skip the header
-                width, height = map(int, lines[0].split())
+                lines = output.strip().split('\n')
+                width = height = None
+                
+                for line in lines:
+                    if line.strip():  # Check for non-empty line
+                        key, value = line.split('=')
+                        value = value.strip()  # Strip whitespace from value
+                        # Assign only if value is non-empty and can be converted to int
+                        if value and key == 'CurrentHorizontalResolution':
+                            width = int(value) if value.isdigit() else None
+                        elif value and key == 'CurrentVerticalResolution':
+                            height = int(value) if value.isdigit() else None
+
+                # After the loop, check if we have valid width and height
+                if width is not None and height is not None:
+                    print(f"Resolution: {width}x{height}")
+                else:
+                    print("Could not retrieve valid resolution values.")
             elif platform.system() == "Darwin":
                 resolution = output.split()[0]
                 width, height = map(int, resolution.split('x'))
