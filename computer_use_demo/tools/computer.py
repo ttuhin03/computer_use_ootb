@@ -4,6 +4,8 @@ import pyautogui
 import asyncio
 import base64
 import os
+if platform.system() == "Darwin":
+    import Quartz  # uncomment this line if you are on macOS
 from enum import StrEnum
 from pathlib import Path
 from typing import Literal, TypedDict
@@ -193,6 +195,7 @@ class ComputerTool(BaseAnthropicTool):
 
         # Take screenshot using pyautogui
         screenshot = pyautogui.screenshot()
+        screenshot = screenshot.resize((self.target_dimension["width"], self.target_dimension["height"]))
         screenshot.save(str(path))
 
         if path.exists():
@@ -224,6 +227,8 @@ class ComputerTool(BaseAnthropicTool):
             if abs(dimension["width"] / dimension["height"] - ratio) < 0.02:
                 if dimension["width"] < self.width:
                     target_dimension = dimension
+                    self.target_dimension = target_dimension
+                    # print(f"target_dimension: {target_dimension}")
                 break
         if target_dimension is None:
             return x, y
@@ -270,8 +275,22 @@ class ComputerTool(BaseAnthropicTool):
                 else:
                     print("Could not retrieve valid resolution values.")
             elif platform.system() == "Darwin":
-                resolution = output.split()[0]
-                width, height = map(int, resolution.split('x'))
+                # first_resolution = output.strip().splitlines()[0]
+                # resolution = first_resolution.split()[1] + "x" + first_resolution.split()[3]
+                # width, height = map(int, resolution.split('x'))
+                main_display_id = Quartz.CGMainDisplayID()
+                
+                # 获取当前显示模式
+                current_mode = Quartz.CGDisplayCopyDisplayMode(main_display_id)
+                
+                # 获取缩放后的分辨率（像素宽度和高度）
+                width = Quartz.CGDisplayModeGetWidth(current_mode)
+                height = Quartz.CGDisplayModeGetHeight(current_mode)
+
+                if width is not None and height is not None:
+                    print(f"Resolution: {width}x{height}")
+                else:
+                    print("Could not retrieve valid resolution values.")
             else:
                 resolution = output.strip().split()[0]
                 width, height = map(int, resolution.split('x'))
