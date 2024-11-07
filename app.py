@@ -2,6 +2,7 @@
 Entrypoint for Gradio, see https://gradio.app/
 """
 
+import platform
 import asyncio
 import base64
 import os
@@ -60,11 +61,12 @@ def setup_state(state):
     if "tools" not in state:
         state["tools"] = {}
     if "only_n_most_recent_images" not in state:
-        state["only_n_most_recent_images"] = 10
+        state["only_n_most_recent_images"] = 3 # 10
     if "custom_system_prompt" not in state:
         state["custom_system_prompt"] = load_from_storage("system_prompt") or ""
         # remove if want to use default system prompt
-        state["custom_system_prompt"] += "\n\nNote that you are operating on a Windows machine, so you should use double click to open a desktop application"
+        device_os_name = "Windows" if platform.platform == "Windows" else "Mac" if platform.platform == "Darwin" else "Linux"
+        state["custom_system_prompt"] += f"\n\nNOTE: you are operating a {device_os_name} machine"
     if "hide_images" not in state:
         state["hide_images"] = False
 
@@ -239,7 +241,7 @@ with gr.Blocks() as demo:
         only_n_images = gr.Slider(
             label="Only send N most recent images",
             minimum=0,
-            value=10,
+            value=3, # 10
             interactive=True,
         )
         custom_prompt = gr.Textbox(
@@ -252,7 +254,7 @@ with gr.Blocks() as demo:
     api_key.change(fn=lambda key: save_to_storage(API_KEY_FILE, key), inputs=api_key)
     chat_input = gr.Textbox(label="Type a message to send to Claude...")
     # chat_output = gr.Textbox(label="Chat Output", interactive=False)
-    chatbot = gr.Chatbot(label="Chatbot History")
+    chatbot = gr.Chatbot(label="Chatbot History", autoscroll=True)
 
     # Pass state as an input to the function
     chat_input.submit(process_input, [chat_input, state], chatbot)

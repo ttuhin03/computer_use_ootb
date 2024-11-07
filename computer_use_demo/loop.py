@@ -132,6 +132,7 @@ async def sampling_loop(
             system=system,
             tools=tool_collection.to_params(),
             betas=["computer-use-2024-10-22"],
+            temperature=0.0,
         )
 
         api_response_callback(cast(APIResponse[BetaMessage], raw_response))
@@ -209,6 +210,7 @@ def sampling_loop_sync(
             system=system,
             tools=tool_collection.to_params(),
             betas=["computer-use-2024-10-22"],
+            temperature=0.0,
         )
 
         api_response_callback(cast(APIResponse[BetaMessage], raw_response))
@@ -220,7 +222,10 @@ def sampling_loop_sync(
             "role": "assistant",
             "content": cast(list[BetaContentBlockParam], response.content),
         }
-        messages.append(new_message)
+        if new_message not in messages:
+            messages.append(new_message)
+        else:
+            print("new_message already in messages, there are duplicates.")
 
         tool_result_content: list[BetaToolResultBlockParam] = []
         for content_block in cast(list[BetaContentBlock], response.content):
@@ -250,10 +255,15 @@ def sampling_loop_sync(
                         # image_path = decode_base64_image_and_save(msg["content"][0]["content"][-1]["source"]["data"])
                         # res.append((None, gr.Image(image_path)))  # Bot message
                         res.append((None, f'<img src="data:image/png;base64,{msg["content"][0]["content"][-1]["source"]["data"]}">'))  # Bot message
+                    elif isinstance(msg["content"][0], Dict) and msg["content"][0]["content"][-1]["type"] == "text":
+                        # image_path = decode_base64_image_and_save(msg["content"][0]["content"][-1]["source"]["data"])
+                        # res.append((None, gr.Image(image_path)))  # Bot message
+                        res.append((None, msg["content"][0]["content"][-1]["text"]))  # Bot message
                     else:
                         print(msg["content"][0])
                 except Exception as e:
-                    print("error", e)
+                    print("msg:", msg)
+                    print("error:", e)
                     pass
             
             # Yield crafted messages
@@ -269,7 +279,7 @@ def sampling_loop_sync(
 def _maybe_filter_to_n_most_recent_images(
     messages: list[BetaMessageParam],
     images_to_keep: int,
-    min_removal_threshold: int = 10,
+    min_removal_threshold: int = 3, # 10
 ):
     """
     With the assumption that images are screenshots that are of diminishing value as
