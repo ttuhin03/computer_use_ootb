@@ -6,6 +6,8 @@ This is an out-of-the-box (OOTB) solution for Claude's new Computer Use APIs.
 **No Docker** is required, and it theoretically supports **any platform**, with testing currently done on **Windows**. This project provides a user-friendly interface based on Gradio. 🎨
 
 ## Update
+- 11-11: Forget about the low-resolution display limit set by Anthropic — you can now use *any resolution you like* and still keep the **screenshot token cost low**!
+- 11-11: Now both **macOS** and **windows** platforms are supported!
 - 10-25: Now you can **Remotely Control** your computer 💻 through your mobile device 📱 — **No Mobile App Installation** required! Give it a try and have fun 🎉.
 
 ## Demo Video
