@@ -61,6 +61,7 @@ Desktop Interface
 
 ## 🖥️ Supported Systems
 - **Windows** ✅
+- **macOS** ✅
 
 ## ⚠️ Risks
 - **Potential Dangerous Operations by the Model**: The models' performance is still limited and may generate unintended or potentially harmful outputs. Recommend continuously monitoring the AI's actions. 
@@ -76,7 +77,7 @@ Desktop Interface
 - [ ] **Platform**
   - [x] **Windows** 
   - [x] **Mobile** (Send command)
-  - [ ] **Mac**
+  - [x] **Mac**
   - [ ] **Mobile** (Be controlled)
 - [ ] **Support for More MLLMs**
   - [x] **Claude 3.5 Sonnet** 🎵
