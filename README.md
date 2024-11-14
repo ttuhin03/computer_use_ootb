@@ -77,7 +77,7 @@ Desktop Interface
 - [ ] **Platform**
   - [x] **Windows** 
   - [x] **Mobile** (Send command)
-  - [x] **Mac**
+  - [x] **macOS**
   - [ ] **Mobile** (Be controlled)
 - [ ] **Support for More MLLMs**
   - [x] **Claude 3.5 Sonnet** 🎵
