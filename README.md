@@ -1,4 +1,12 @@
-# Computer Use - OOTB
+<h2 align="center"> <a href="https://arxiv.org/abs/2411.10440">The Dawn of GUI Agent: A Preliminary Case Study with Claude 3.5 Computer Use</a></h2>
+<h5 align="center"> If you like our project, please give us a star ⭐ on GitHub for the latest update.</h5>
+
+<h5 align=center>
+
+[![arXiv](https://img.shields.io/badge/Arxiv-2411.10323-b31b1b.svg?logo=arXiv)](https://arxiv.org/abs/2411.10323)
+[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fshowlab%2Fcomputer_use_ootb&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fshowlab%2Fcomputer_use_ootb&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)
+
+</h5>
 
 ## 🌟 Overview
 This is an out-of-the-box (OOTB) solution for Claude's new Computer Use APIs. 
@@ -8,9 +16,9 @@ This is an out-of-the-box (OOTB) solution for Claude's new Computer Use APIs.
 For more information, visit our [project page](https://computer-use-ootb.github.io). 🌐
 
 ## Update
-- 11-11: Forget about the low-resolution display limit set by Anthropic — you can now use *any resolution you like* and still keep the **screenshot token cost low** 🎉!
-- 11-11: Now both **Windows** and **macOS** platforms are supported 🎉!
-- 10-25: Now you can **Remotely Control** your computer 💻 through your mobile device 📱 — **No Mobile App Installation** required! Give it a try and have fun 🎉.
+- **[2024/11/11]** Forget about the low-resolution display limit set by Anthropic — you can now use *any resolution you like* and still keep the **screenshot token cost low** 🎉!
+- **[2024/11/11]** Now both **Windows** and **macOS** platforms are supported 🎉!
+- **[2024/10/25]** Now you can **Remotely Control** your computer 💻 through your mobile device 📱 — **No Mobile App Installation** required! Give it a try and have fun 🎉.
 
 ## Demo Video
 
