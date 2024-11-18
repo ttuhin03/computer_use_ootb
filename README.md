@@ -16,7 +16,7 @@ This is an out-of-the-box (OOTB) solution for Claude's new Computer Use APIs.
 For more information, you can visit our [project page](https://computer-use-ootb.github.io). 🌐
 
 ## Update
-- **[2024/11/18]** We've released a deep analysis of Claude 3.5 Computer Use: [https://arxiv.org/abs/2411.10323](https://arxiv.org/abs/2411.10323)
+- **[2024/11/18]** We've released a deep analysis of Claude 3.5 Computer Use: [https://arxiv.org/abs/2411.10323](https://arxiv.org/abs/2411.10323).
 - **[2024/11/11]** Forget about the low-resolution display limit set by Anthropic — you can now use *any resolution you like* and still keep the **screenshot token cost low** 🎉!
 - **[2024/11/11]** Now both **Windows** and **macOS** platforms are supported 🎉!
 - **[2024/10/25]** Now you can **Remotely Control** your computer 💻 through your mobile device 📱 — **No Mobile App Installation** required! Give it a try and have fun 🎉.
