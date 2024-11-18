@@ -1,4 +1,4 @@
-<h2 align="center"> <a href="https://arxiv.org/abs/2411.10323">The Dawn of GUI Agent: A Preliminary Case Study with Claude 3.5 Computer Use</a></h2>
+<h2 align="center"> <a href="https://computer-use-ootb.github.io">The Dawn of GUI Agent: A Preliminary Case Study with Claude 3.5 Computer Use</a></h2>
 <h5 align="center"> If you like our project, please give us a star ⭐ on GitHub for the latest update.</h5>
 
 <h5 align=center>
