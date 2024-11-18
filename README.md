@@ -23,6 +23,8 @@ For more information, you can visit our [project page](https://computer-use-ootb
 
 ## Demo Video
 
+https://github.com/user-attachments/assets/c1cd4d68-19c6-4f1d-9d5c-61a9e837b49d
+
 [![Watch the video](https://img.youtube.com/vi/0bcYVrV_c3g/maxresdefault.jpg)](https://youtu.be/0bcYVrV_c3g)
 
 [![Watch the video](https://img.youtube.com/vi/Ychd-t24HZw/maxresdefault.jpg)](https://youtu.be/Ychd-t24HZw)
