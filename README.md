@@ -23,10 +23,9 @@ For more information, you can visit our [project page](https://computer-use-ootb
 
 ## Demo Video
 
-<video controls poster="https://img.youtube.com/vi/0bcYVrV_c3g/maxresdefault.jpg" width="300">
-    <source src="https://github.com/user-attachments/assets/c1cd4d68-19c6-4f1d-9d5c-61a9e837b49d" type="video/mp4">
-    Your browser does not support the video tag.
-</video>
+<a href="https://youtu.be/0bcYVrV_c3g" target="_blank">
+    <img src="https://img.youtube.com/vi/0bcYVrV_c3g/maxresdefault.jpg" alt="Watch the video">
+</a>
 
 [![Watch the video](https://img.youtube.com/vi/Ychd-t24HZw/maxresdefault.jpg)](https://youtu.be/Ychd-t24HZw)
 
