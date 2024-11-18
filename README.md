@@ -23,8 +23,7 @@ For more information, you can visit our [project page](https://computer-use-ootb
 
 ## Demo Video
 
-<!-- Embed YouTube video with autoplay -->
-<iframe width="560" height="315" src="https://www.youtube.com/embed/0bcYVrV_c3g?autoplay=1&mute=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+[![Watch the video](https://img.youtube.com/vi/0bcYVrV_c3g/maxresdefault.jpg)](https://youtu.be/0bcYVrV_c3g)
 
 [![Watch the video](https://img.youtube.com/vi/Ychd-t24HZw/maxresdefault.jpg)](https://youtu.be/Ychd-t24HZw)
 
