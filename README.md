@@ -5,6 +5,8 @@ This is an out-of-the-box (OOTB) solution for Claude's new Computer Use APIs.
 
 **No Docker** is required, and it supports both **Windows** and **macOS**. This project provides a user-friendly interface based on Gradio. 🎨
 
+For more information, visit our [project page](https://computer-use-ootb.github.io). 🌐
+
 ## Update
 - 11-11: Forget about the low-resolution display limit set by Anthropic — you can now use *any resolution you like* and still keep the **screenshot token cost low** 🎉!
 - 11-11: Now both **Windows** and **macOS** platforms are supported 🎉!
