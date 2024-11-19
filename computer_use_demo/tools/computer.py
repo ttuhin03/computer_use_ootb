@@ -297,8 +297,8 @@ class ComputerTool(BaseAnthropicTool):
 
         # Resize if target_dimensions are specified
         if hasattr(self, 'target_dimension'):
-            print(f"offset is {self.offset_x}, {self.offset_y}")
-            print(f"target_dimension is {self.target_dimension}")
+            # print(f"offset is {self.offset_x}, {self.offset_y}")
+            # print(f"target_dimension is {self.target_dimension}")
             screenshot = screenshot.resize((self.target_dimension["width"], self.target_dimension["height"]))
 
         # Save the screenshot
