@@ -12,7 +12,7 @@ from typing import Literal, TypedDict
 from uuid import uuid4
 from screeninfo import get_monitors
 
-from PIL import ImageGrab
+from PIL import ImageGrab, Image
 from functools import partial
 
 from anthropic.types.beta import BetaToolComputerUse20241022Param
@@ -295,11 +295,15 @@ class ComputerTool(BaseAnthropicTool):
         self.offset_x = screen['x'] if system == "Darwin" else screen.x
         self.offset_y = screen['y'] if system == "Darwin" else screen.y
 
+        if not hasattr(self, 'target_dimension'):
+            screenshot = self.padding_image(screenshot)
+            self.target_dimension = MAX_SCALING_TARGETS["WXGA"]
+
         # Resize if target_dimensions are specified
-        if hasattr(self, 'target_dimension'):
-            print(f"offset is {self.offset_x}, {self.offset_y}")
-            print(f"target_dimension is {self.target_dimension}")
-            screenshot = screenshot.resize((self.target_dimension["width"], self.target_dimension["height"]))
+        print(f"offset is {self.offset_x}, {self.offset_y}")
+        print(f"target_dimension is {self.target_dimension}")
+        screenshot = screenshot.resize((self.target_dimension["width"], self.target_dimension["height"]))
+
 
         # Save the screenshot
         screenshot.save(str(path))
@@ -309,6 +313,16 @@ class ComputerTool(BaseAnthropicTool):
             return ToolResult(base64_image=base64.b64encode(path.read_bytes()).decode())
         
         raise ToolError(f"Failed to take screenshot: {path} does not exist.")
+
+    def padding_image(self, screenshot):
+        """Pad the screenshot to 16:10 aspect ratio, when the aspect ratio is not 16:10."""
+        _, height = screenshot.size
+        new_width = height * 16 // 10
+
+        padding_image = Image.new("RGB", (new_width, height), (255, 255, 255))
+        # padding to top left
+        padding_image.paste(screenshot, (0, 0))
+        return padding_image
 
     async def shell(self, command: str, take_screenshot=True) -> ToolResult:
         """Run a shell command and return the output, error, and optionally a screenshot."""
@@ -328,7 +342,8 @@ class ComputerTool(BaseAnthropicTool):
             return x, y
         ratio = self.width / self.height
         target_dimension = None
-        for dimension in MAX_SCALING_TARGETS.values():
+
+        for target_name, dimension in MAX_SCALING_TARGETS.items():
             # allow some error in the aspect ratio - not ratios are exactly 16:9
             if abs(dimension["width"] / dimension["height"] - ratio) < 0.02:
                 if dimension["width"] < self.width:
@@ -336,8 +351,12 @@ class ComputerTool(BaseAnthropicTool):
                     self.target_dimension = target_dimension
                     # print(f"target_dimension: {target_dimension}")
                 break
+
         if target_dimension is None:
-            return x, y
+            # TODO: currently we force the target to be WXGA (16:10), when it cannot find a match
+            target_dimension = MAX_SCALING_TARGETS["WXGA"]
+            self.target_dimension = MAX_SCALING_TARGETS["WXGA"]
+
         # should be less than 1
         x_scaling_factor = target_dimension["width"] / self.width
         y_scaling_factor = target_dimension["height"] / self.height
