@@ -31,6 +31,9 @@ from io import BytesIO
 import gradio as gr
 from typing import Dict
 
+from computer_use_demo.autopc.actor.anthropic_actor import AnthropicActor
+from computer_use_demo.autopc.executor.anthropic_executor import AnthropicExecutor
+
 
 BETA_FLAG = "computer-use-2024-10-22"
 
@@ -111,6 +114,7 @@ async def sampling_loop(
     )
 
     while True:
+        # Action Generation
         if only_n_most_recent_images:
             _maybe_filter_to_n_most_recent_images(messages, only_n_most_recent_images)
 
@@ -125,6 +129,7 @@ async def sampling_loop(
         # we use raw_response to provide debug information to streamlit. Your
         # implementation may be able call the SDK directly with:
         # `response = client.messages.create(...)` instead.
+        print(messages)
         raw_response = client.beta.messages.with_raw_response.create(
             max_tokens=max_tokens,
             messages=messages,
@@ -177,109 +182,52 @@ def sampling_loop_sync(
     api_key: str,
     only_n_most_recent_images: int | None = None,
     max_tokens: int = 4096,
+    selected_screen: int = 0
 ):
     """
     Synchronous agentic sampling loop for the assistant/tool interaction of computer use.
     """
-    tool_collection = ToolCollection(
-        ComputerTool(),
-        BashTool(),
-        EditTool(),
-    )
-    system = (
-        f"{SYSTEM_PROMPT}{' ' + system_prompt_suffix if system_prompt_suffix else ''}"
-    )
-
-    while True:
-        if only_n_most_recent_images:
-            _maybe_filter_to_n_most_recent_images(messages, only_n_most_recent_images)
-
-        # Instantiate the appropriate API client based on the provider
-        if provider == APIProvider.ANTHROPIC:
-            client = Anthropic(api_key=api_key)
-        elif provider == APIProvider.VERTEX:
-            client = AnthropicVertex()
-        elif provider == APIProvider.BEDROCK:
-            client = AnthropicBedrock()
-
-        # Call the API synchronously
-        raw_response = client.beta.messages.with_raw_response.create(
+    if model == "claude-3-5-sonnet-20241022":
+        # Register Actor and Executor
+        actor = AnthropicActor(
+            model=model, 
+            provider=provider, 
+            system_prompt_suffix=system_prompt_suffix, 
+            api_key=api_key, 
+            api_response_callback=api_response_callback,
             max_tokens=max_tokens,
-            messages=messages,
-            model=model,
-            system=system,
-            tools=tool_collection.to_params(),
-            betas=["computer-use-2024-10-22"],
-            temperature=0.0,
+            only_n_most_recent_images=only_n_most_recent_images,
+            selected_screen=selected_screen
         )
 
-        api_response_callback(cast(APIResponse[BetaMessage], raw_response))
+        # Register Executor: Function of the Executor is to send messages to ChatRoom or Execute the Action
+        executor = AnthropicExecutor(
+            output_callback=output_callback,
+            tool_output_callback=tool_output_callback,
+            selected_screen=selected_screen
+        )
+    else:
+        raise ValueError(f"Model {model} not supported")
+    
 
-        response = raw_response.parse()
+    print("Start the loop")
+    while True:
+        # from IPython.core.debugger import Pdb; Pdb().set_trace()
+        response = actor(messages=messages)
 
-        # Append new assistant message
-        new_message = {
-            "role": "assistant",
-            "content": cast(list[BetaContentBlockParam], response.content),
-        }
-        if new_message not in messages:
-            messages.append(new_message)
-        else:
-            print("new_message already in messages, there are duplicates.")
-
-        tool_result_content: list[BetaToolResultBlockParam] = []
-        for content_block in cast(list[BetaContentBlock], response.content):
-            output_callback(content_block)
-            if content_block.type == "tool_use":
-                # Run the asynchronous tool execution in a synchronous context
-                result = asyncio.run(tool_collection.run(
-                    name=content_block.name,
-                    tool_input=cast(dict[str, Any], content_block.input),
-                ))
-                tool_result_content.append(
-                    _make_api_tool_result(result, content_block.id)
-                )
-                tool_output_callback(result, content_block.id)
-
-            # Craft messages based on the content_block
-            res = []
-            for msg in messages:
-                try:
-                    if isinstance(msg["content"][0], TextBlock):
-                        res.append((msg["content"][0].text, None))  # User message
-                    elif isinstance(msg["content"][0], BetaTextBlock):
-                        res.append((None, msg["content"][0].text))  # Bot message
-                    elif isinstance(msg["content"][0], BetaToolUseBlock):
-                        res.append((None, f"Tool Use: {msg['content'][0].name}\nInput: {msg['content'][0].input}"))  # Bot message
-                    elif isinstance(msg["content"][0], Dict) and msg["content"][0]["content"][-1]["type"] == "image":
-                        # image_path = decode_base64_image_and_save(msg["content"][0]["content"][-1]["source"]["data"])
-                        # res.append((None, gr.Image(image_path)))  # Bot message
-                        res.append((None, f'<img src="data:image/png;base64,{msg["content"][0]["content"][-1]["source"]["data"]}">'))  # Bot message
-                    elif isinstance(msg["content"][0], Dict) and msg["content"][0]["content"][-1]["type"] == "text":
-                        # image_path = decode_base64_image_and_save(msg["content"][0]["content"][-1]["source"]["data"])
-                        # res.append((None, gr.Image(image_path)))  # Bot message
-                        res.append((None, msg["content"][0]["content"][-1]["text"]))  # Bot message
-                    else:
-                        print(msg["content"][0])
-                except Exception as e:
-                    print("msg:", msg)
-                    print("error:", e)
-                    pass
-            
-            # Yield crafted messages
-            for user_msg, bot_msg in res:
-                yield [user_msg, bot_msg]
-
+        # Example Action: BetaMessage(id='msg_01FsYVD9PkwPo6Q9vDa2SASb', content=[BetaTextBlock(text="I'll help you open a new tab. First, I'll check if a browser window is already open by taking a screenshot, and then proceed to open a new tab.", type='text'), BetaToolUseBlock(id='toolu_01C9MQvdzehkv457iee8T8M1', input={'action': 'screenshot'}, name='computer', type='tool_use')], model='claude-3-5-sonnet-20241022', role='assistant', stop_reason='tool_use', stop_sequence=None, type='message', usage=BetaUsage(cache_creation_input_tokens=None, cache_read_input_tokens=None, input_tokens=2157, output_tokens=90))
+        for message, tool_result_content in executor(response, messages):
+            yield message
+    
         if not tool_result_content:
             return messages
 
         messages.append({"content": tool_result_content, "role": "user"})
 
-
 def _maybe_filter_to_n_most_recent_images(
     messages: list[BetaMessageParam],
     images_to_keep: int,
-    min_removal_threshold: int = 3, # 10
+    min_removal_threshold: int = 2, # 10
 ):
     """
     With the assumption that images are screenshots that are of diminishing value as

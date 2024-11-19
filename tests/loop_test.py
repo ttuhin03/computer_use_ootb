@@ -3,7 +3,7 @@ from unittest import mock
 from anthropic.types import TextBlock, ToolUseBlock
 from anthropic.types.beta import BetaMessage, BetaMessageParam
 
-from computer_use_demo.loop import APIProvider, sampling_loop
+from computer_use_demo.loop import APIProvider, yield_message
 
 
 async def test_loop():
@@ -37,7 +37,7 @@ async def test_loop():
         "computer_use_demo.loop.ToolCollection", return_value=tool_collection
     ):
         messages: list[BetaMessageParam] = [{"role": "user", "content": "Test message"}]
-        result = await sampling_loop(
+        result = await yield_message(
             model="test-model",
             provider=APIProvider.ANTHROPIC,
             system_prompt_suffix="",
