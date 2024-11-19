@@ -69,7 +69,7 @@ def setup_state(state):
     if "tools" not in state:
         state["tools"] = {}
     if "only_n_most_recent_images" not in state:
-        state["only_n_most_recent_images"] = 1 # 10
+        state["only_n_most_recent_images"] = 2 # 10
     if "custom_system_prompt" not in state:
         state["custom_system_prompt"] = load_from_storage("system_prompt") or ""
         # remove if want to use default system prompt
@@ -272,7 +272,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
                 only_n_images = gr.Slider(
                     label="N most recent screenshots",
                     minimum=0,
-                    value=1,
+                    value=2,
                     interactive=True,
                 )
         # hide_images = gr.Checkbox(label="Hide screenshots", value=False)

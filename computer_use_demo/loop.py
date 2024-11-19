@@ -227,7 +227,7 @@ def sampling_loop_sync(
 def _maybe_filter_to_n_most_recent_images(
     messages: list[BetaMessageParam],
     images_to_keep: int,
-    min_removal_threshold: int = 1, # 10
+    min_removal_threshold: int = 2, # 10
 ):
     """
     With the assumption that images are screenshots that are of diminishing value as
