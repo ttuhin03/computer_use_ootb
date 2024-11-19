@@ -10,13 +10,17 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Literal, TypedDict
 from uuid import uuid4
+from screeninfo import get_monitors
+
+from PIL import ImageGrab
+from functools import partial
 
 from anthropic.types.beta import BetaToolComputerUse20241022Param
 
 from .base import BaseAnthropicTool, ToolError, ToolResult
 from .run import run
 
-OUTPUT_DIR = "/tmp/outputs"
+OUTPUT_DIR = "./tmp/outputs"
 
 TYPING_DELAY_MS = 12
 TYPING_GROUP_SIZE = 50
@@ -62,6 +66,34 @@ def chunks(s: str, chunk_size: int) -> list[str]:
     return [s[i : i + chunk_size] for i in range(0, len(s), chunk_size)]
 
 
+def get_screen_details():
+    screens = get_monitors()
+    screen_details = []
+
+    # Sort screens by x position to arrange from left to right
+    sorted_screens = sorted(screens, key=lambda s: s.x)
+
+    # Loop through sorted screens and assign positions
+    primary_index = 0
+    for i, screen in enumerate(sorted_screens):
+        if i == 0:
+            layout = "Left"
+        elif i == len(sorted_screens) - 1:
+            layout = "Right"
+        else:
+            layout = "Center"
+        
+        if screen.is_primary:
+            position = "Primary" 
+            primary_index = i
+        else:
+            position = "Secondary"
+        screen_info = f"Screen {i + 1}: {screen.width}x{screen.height}, {layout}, {position}"
+        screen_details.append(screen_info)
+
+    return screen_details, primary_index
+
+
 class ComputerTool(BaseAnthropicTool):
     """
     A tool that allows the agent to interact with the screen, keyboard, and mouse of the current computer.
@@ -91,12 +123,15 @@ class ComputerTool(BaseAnthropicTool):
     def to_params(self) -> BetaToolComputerUse20241022Param:
         return {"name": self.name, "type": self.api_type, **self.options}
 
-    def __init__(self):
+    def __init__(self, selected_screen: int = 0):
         super().__init__()
 
         # Get screen width and height using Windows command
-        self.width, self.height = self.get_screen_size()
         self.display_num = None
+        self.offset_x = 0
+        self.offset_y = 0
+        self.selected_screen = selected_screen   
+        self.width, self.height = self.get_screen_size()     
 
         # Path to cliclick
         self.cliclick = "cliclick"
@@ -110,6 +145,7 @@ class ComputerTool(BaseAnthropicTool):
         coordinate: tuple[int, int] | None = None,
         **kwargs,
     ):
+        print(f"action: {action}, text: {text}, coordinate: {coordinate}")
         if action in ("mouse_move", "left_click_drag"):
             if coordinate is None:
                 raise ToolError(f"coordinate is required for {action}")
@@ -123,6 +159,8 @@ class ComputerTool(BaseAnthropicTool):
             x, y = self.scale_coordinates(
                 ScalingSource.API, coordinate[0], coordinate[1]
             )
+            x += self.offset_x
+            y += self.offset_y
 
             if action == "mouse_move":
                 pyautogui.moveTo(x, y)
@@ -145,9 +183,11 @@ class ComputerTool(BaseAnthropicTool):
                 keys = text.split('+')
                 for key in keys:
                     key = self.key_conversion.get(key.strip(), key.strip())
+                    key = key.lower()
                     pyautogui.keyDown(key)  # Press down each key
                 for key in reversed(keys):
                     key = self.key_conversion.get(key.strip(), key.strip())
+                    key = key.lower()
                     pyautogui.keyUp(key)    # Release each key in reverse order
                 return ToolResult(output=f"Pressed keys: {text}")
             
@@ -193,8 +233,24 @@ class ComputerTool(BaseAnthropicTool):
         output_dir.mkdir(parents=True, exist_ok=True)
         path = output_dir / f"screenshot_{uuid4().hex}.png"
 
+        ImageGrab.grab = partial(ImageGrab.grab, all_screens=True)
+
         # Take screenshot using pyautogui
-        screenshot = pyautogui.screenshot()
+        screens = get_monitors()
+
+        # Sort screens by x position to arrange from left to right
+        sorted_screens = sorted(screens, key=lambda s: s.x)
+
+        if self.selected_screen < 0 or self.selected_screen >= len(screens):
+            raise IndexError("Invalid screen index.")
+
+        screen = sorted_screens[self.selected_screen]
+        bbox = (screen.x, screen.y, screen.x + screen.width, screen.y + screen.height)
+        # from IPython.core.debugger import Pdb; Pdb().set_trace()
+        screenshot = ImageGrab.grab(bbox=bbox)
+
+        self.offset_x = screen.x
+        self.offset_y = screen.y
         screenshot = screenshot.resize((self.target_dimension["width"], self.target_dimension["height"]))
         screenshot.save(str(path))
 
@@ -245,39 +301,34 @@ class ComputerTool(BaseAnthropicTool):
 
     def get_screen_size(self):
         if platform.system() == "Windows":
-            # Command to get screen resolution on Windows
-            cmd = "wmic path Win32_VideoController get CurrentHorizontalResolution,CurrentVerticalResolution /format:value"
-        elif platform.system() == "Darwin":  # macOS
+            # Use screeninfo to get primary monitor on Windows
+            screens = get_monitors()
+
+            # Sort screens by x position to arrange from left to right
+            sorted_screens = sorted(screens, key=lambda s: s.x)
+            
+            if self.selected_screen is None:
+                primary_monitor = next((m for m in get_monitors() if m.is_primary), None)
+                return primary_monitor.width, primary_monitor.height
+            elif self.selected_screen < 0 or self.selected_screen >= len(screens):
+                raise IndexError("Invalid screen index.")
+            else:
+                screen = sorted_screens[self.selected_screen]
+                return screen.width, screen.height
+
+        elif platform.system() == "Darwin":
             cmd = "system_profiler SPDisplaysDataType | grep Resolution"
         else:  # Linux or other OS
-            cmd = "xrandr | grep '*' | awk '{print $1}'"
+            cmd = "xrandr | grep ' primary' | awk '{print $4}'"
 
         try:
             output = subprocess.check_output(cmd, shell=True).decode()
-            
-            if platform.system() == "Windows":
-                lines = output.strip().split('\n')
-                width = height = None
-                
-                for line in lines:
-                    if line.strip():  # Check for non-empty line
-                        key, value = line.split('=')
-                        value = value.strip()  # Strip whitespace from value
-                        # Assign only if value is non-empty and can be converted to int
-                        if value and key == 'CurrentHorizontalResolution':
-                            width = int(value) if value.isdigit() else None
-                        elif value and key == 'CurrentVerticalResolution':
-                            height = int(value) if value.isdigit() else None
 
-                # After the loop, check if we have valid width and height
-                if width is not None and height is not None:
-                    print(f"Resolution: {width}x{height}")
-                else:
-                    print("Could not retrieve valid resolution values.")
-            elif platform.system() == "Darwin":
+            if platform.system() == "Darwin":
                 # first_resolution = output.strip().splitlines()[0]
                 # resolution = first_resolution.split()[1] + "x" + first_resolution.split()[3]
                 # width, height = map(int, resolution.split('x'))
+                # TODO: add multi-monitor support for macOS
                 main_display_id = Quartz.CGMainDisplayID()
                 
                 # 获取当前显示模式

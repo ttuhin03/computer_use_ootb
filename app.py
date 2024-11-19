@@ -6,6 +6,7 @@ import platform
 import asyncio
 import base64
 import os
+import json
 from datetime import datetime
 from enum import StrEnum
 from functools import partial
@@ -18,21 +19,28 @@ from anthropic.types import TextBlock
 from anthropic.types.beta import BetaMessage, BetaTextBlock, BetaToolUseBlock
 from anthropic.types.tool_use_block import ToolUseBlock
 
+from screeninfo import get_monitors
+
+# TODO: I don't know why If don't get monitors here, the screen resolution will be wrong for secondary screen. Seems there are some conflict with computer_use_demo.tools
+screens = get_monitors()
+print(screens)
 from computer_use_demo.loop import (
     PROVIDER_TO_DEFAULT_MODEL_NAME,
     APIProvider,
-    sampling_loop,
+    # sampling_loop,
     sampling_loop_sync,
 )
 
 from computer_use_demo.tools import ToolResult
-
+from computer_use_demo.tools.computer import get_screen_details
 
 CONFIG_DIR = Path("~/.anthropic").expanduser()
 API_KEY_FILE = CONFIG_DIR / "api_key"
 
 WARNING_TEXT = "⚠️ Security Alert: Never provide access to sensitive accounts or data, as malicious web content can hijack Claude's behavior"
 
+SELECTED_SCREEN_INDEX = None
+SCREEN_NAMES = None
 
 class Sender(StrEnum):
     USER = "user"
@@ -61,7 +69,7 @@ def setup_state(state):
     if "tools" not in state:
         state["tools"] = {}
     if "only_n_most_recent_images" not in state:
-        state["only_n_most_recent_images"] = 3 # 10
+        state["only_n_most_recent_images"] = 1 # 10
     if "custom_system_prompt" not in state:
         state["custom_system_prompt"] = load_from_storage("system_prompt") or ""
         # remove if want to use default system prompt
@@ -178,7 +186,7 @@ def process_input(user_input, state):
     )
 
     # Run the sampling loop synchronously and yield messages
-    for message in sampling_loop(state):
+    for message in yield_message(state):
         yield message
 
 
@@ -187,8 +195,9 @@ def accumulate_messages(*args, **kwargs):
     Wrapper function to accumulate messages from sampling_loop_sync.
     """
     accumulated_messages = []
-    
-    for message in sampling_loop_sync(*args, **kwargs):
+    global SELECTED_SCREEN_INDEX    
+    print(f"Selected screen: {SELECTED_SCREEN_INDEX}")
+    for message in sampling_loop_sync(*args, selected_screen=SELECTED_SCREEN_INDEX, **kwargs):
         # Check if the message is already in the accumulated messages
         if message not in accumulated_messages:
             accumulated_messages.append(message)
@@ -196,7 +205,7 @@ def accumulate_messages(*args, **kwargs):
             yield accumulated_messages
 
 
-def sampling_loop(state):
+def yield_message(state):
     # Ensure the API key is present
     if not state.get("api_key"):
         raise ValueError("API key is missing. Please set it in the environment or storage.")
@@ -216,47 +225,136 @@ def sampling_loop(state):
         yield message
 
 
-with gr.Blocks() as demo:
+with gr.Blocks(theme=gr.themes.Soft()) as demo:
     state = gr.State({})  # Use Gradio's state management
 
-    gr.Markdown("# Claude Computer Use Demo")
+    # Retrieve screen details
+    gr.Markdown("# Computer Use OOTB")
 
     if not os.getenv("HIDE_WARNING", False):
         gr.Markdown(WARNING_TEXT)
 
-    with gr.Row():
-        provider = gr.Dropdown(
-            label="API Provider",
-            choices=[option.value for option in APIProvider],
-            value="anthropic",
-            interactive=True,
-        )
-        model = gr.Textbox(label="Model", value="claude-3-5-sonnet-20241022")
-        api_key = gr.Textbox(
-            label="Anthropic API Key",
-            type="password",
-            value="",
-            interactive=True,
-        )
-        only_n_images = gr.Slider(
-            label="Only send N most recent images",
-            minimum=0,
-            value=3, # 10
-            interactive=True,
-        )
-        custom_prompt = gr.Textbox(
-            label="Custom System Prompt Suffix",
-            value="",
-            interactive=True,
-        )
-        hide_images = gr.Checkbox(label="Hide screenshots", value=False)
+    with gr.Accordion("Settings", open=False): 
+        with gr.Row():
+            with gr.Column():
+                model = gr.Textbox(label="Model", value="claude-3-5-sonnet-20241022")
+            with gr.Column():
+                provider = gr.Dropdown(
+                    label="API Provider",
+                    choices=[option.value for option in APIProvider],
+                    value="anthropic",
+                    interactive=True,
+                )
+            with gr.Column():
+                api_key = gr.Textbox(
+                    label="Anthropic API Key",
+                    type="password",
+                    value="",
+                    interactive=True,
+                )
+            with gr.Column():
+                custom_prompt = gr.Textbox(
+                    label="System Prompt Suffix",
+                    value="",
+                    interactive=True,
+                )
+            with gr.Column():
+                screen_options, primary_index = get_screen_details()
+                SCREEN_NAMES = screen_options
+                SELECTED_SCREEN_INDEX = primary_index
+                screen_selector = gr.Dropdown(
+                    label="Select Screen",
+                    choices=screen_options,
+                    value=screen_options[primary_index] if screen_options else None,
+                    interactive=True,
+                )
+            with gr.Column():
+                only_n_images = gr.Slider(
+                    label="N most recent screenshots",
+                    minimum=0,
+                    value=1,
+                    interactive=True,
+                )
+        # hide_images = gr.Checkbox(label="Hide screenshots", value=False)
+
+    # Define the merged dictionary with task mappings
+    merged_dict = json.load(open("examples/ootb_examples.json", "r"))
+
+    # Callback to update the second dropdown based on the first selection
+    def update_second_menu(selected_category):
+        return gr.update(choices=list(merged_dict.get(selected_category, {}).keys()))
+
+    # Callback to update the third dropdown based on the second selection
+    def update_third_menu(selected_category, selected_option):
+        return gr.update(choices=list(merged_dict.get(selected_category, {}).get(selected_option, {}).keys()))
+
+    # Callback to update the textbox based on the third selection
+    def update_textbox(selected_category, selected_option, selected_task):
+        task_data = merged_dict.get(selected_category, {}).get(selected_option, {}).get(selected_task, {})
+        prompt = task_data.get("prompt", "")
+        preview_image = task_data.get("initial_state", "")
+        task_hint = "Task Hint: " + task_data.get("hint", "")
+        return prompt, preview_image, task_hint
+    
+    # Function to update the global variable when the dropdown changes
+    def update_selected_screen(selected_screen_name):
+        global SCREEN_NAMES
+        global SELECTED_SCREEN_INDEX
+        SELECTED_SCREEN_INDEX = SCREEN_NAMES.index(selected_screen_name)
+        print(f"Selected screen updated to: {SELECTED_SCREEN_INDEX}")
+
+    with gr.Accordion("Quick Start Prompt", open=False):  # open=False 表示默认收
+        # Initialize Gradio interface with the dropdowns
+        with gr.Row():
+            # Set initial values
+            initial_category = "Web Navigation"
+            initial_second_options = list(merged_dict[initial_category].keys())
+            initial_third_options = list(merged_dict[initial_category][initial_second_options[0]].keys())
+            initial_text_value = merged_dict[initial_category][initial_second_options[0]][initial_third_options[0]]
+
+            with gr.Column(scale=2):
+            # First dropdown for Task Category
+                first_menu = gr.Dropdown(
+                    choices=list(merged_dict.keys()), label="Task Category", interactive=True, value=initial_category
+                )
+
+                # Second dropdown for Software
+                second_menu = gr.Dropdown(
+                    choices=initial_second_options, label="Software", interactive=True, value=initial_second_options[0]
+                )
+
+                # Third dropdown for Task
+                third_menu = gr.Dropdown(
+                    choices=initial_third_options, label="Task", interactive=True, value=initial_third_options[0]
+                )
+
+            with gr.Column(scale=1):
+                image_preview = gr.Image(label="Reference Initial State", height=260 - (318.75-280))
+                hintbox = gr.Markdown("Task Hint: Selected options will appear here.")
+
+
+        # Textbox for displaying the mapped value
+        # textbox = gr.Textbox(value=initial_text_value, label="Action")
 
     api_key.change(fn=lambda key: save_to_storage(API_KEY_FILE, key), inputs=api_key)
-    chat_input = gr.Textbox(label="Type a message to send to Claude...")
-    # chat_output = gr.Textbox(label="Chat Output", interactive=False)
-    chatbot = gr.Chatbot(label="Chatbot History", autoscroll=True)
 
-    # Pass state as an input to the function
-    chat_input.submit(process_input, [chat_input, state], chatbot)
+    with gr.Row():
+        # submit_button = gr.Button("Submit")  # Add submit button
+        with gr.Column(scale=8):
+            chat_input = gr.Textbox(show_label=False, placeholder="Type a message to send to Computer Use OOTB...", container=False)
+        with gr.Column(scale=1, min_width=50):
+            submit_button = gr.Button(value="Send", variant="primary")
+
+    chatbot = gr.Chatbot(label="Chatbot History", autoscroll=True, height=580)
+
+    screen_selector.change(fn=update_selected_screen, inputs=screen_selector, outputs=None)
+    
+    # Link callbacks to update dropdowns based on selections
+    first_menu.change(fn=update_second_menu, inputs=first_menu, outputs=second_menu)
+    second_menu.change(fn=update_third_menu, inputs=[first_menu, second_menu], outputs=third_menu)
+    third_menu.change(fn=update_textbox, inputs=[first_menu, second_menu, third_menu], outputs=[chat_input, image_preview, hintbox])
+
+    # chat_input.submit(process_input, [chat_input, state], chatbot)
+    submit_button.click(process_input, [chat_input, state], chatbot)
 
 demo.launch(share=True)

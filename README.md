@@ -1,14 +1,29 @@
-# Computer Use - OOTB
+<h2 align="center"> <a href="https://computer-use-ootb.github.io">The Dawn of GUI Agent: A Preliminary Case Study with Claude 3.5 Computer Use</a></h2>
+<h5 align="center"> If you like our project, please give us a star ⭐ on GitHub for the latest update.</h5>
+
+<h5 align=center>
+
+[![arXiv](https://img.shields.io/badge/Arxiv-2411.10323-b31b1b.svg?logo=arXiv)](https://arxiv.org/abs/2411.10323)
+[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fshowlab%2Fcomputer_use_ootb&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fshowlab%2Fcomputer_use_ootb&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)
+
+</h5>
 
 ## 🌟 Overview
 This is an out-of-the-box (OOTB) solution for Claude's new Computer Use APIs. 
 
-**No Docker** is required, and it theoretically supports **any platform**, with testing currently done on **Windows**. This project provides a user-friendly interface based on Gradio. 🎨
+**No Docker** is required, and it supports both **Windows** and **macOS**. This project provides a user-friendly interface based on Gradio. 🎨
+
+For more information, you can visit our [project page](https://computer-use-ootb.github.io). 🌐
 
 ## Update
-- 10-25: Now you can **Remotely Control** your computer 💻 through your mobile device 📱 — **No Mobile App Installation** required! Give it a try and have fun 🎉.
+- **[2024/11/18]** We've released a deep analysis of Claude 3.5 Computer Use: [https://arxiv.org/abs/2411.10323](https://arxiv.org/abs/2411.10323).
+- **[2024/11/11]** Forget about the low-resolution display limit set by Anthropic — you can now use *any resolution you like* and still keep the **screenshot token cost low** 🎉!
+- **[2024/11/11]** Now both **Windows** and **macOS** platforms are supported 🎉!
+- **[2024/10/25]** Now you can **Remotely Control** your computer 💻 through your mobile device 📱 — **No Mobile App Installation** required! Give it a try and have fun 🎉.
 
 ## Demo Video
+
+https://github.com/user-attachments/assets/333e536e-93d0-4a97-8c9b-8f0722c29d51
 
 [![Watch the video](https://img.youtube.com/vi/Ychd-t24HZw/maxresdefault.jpg)](https://youtu.be/Ychd-t24HZw)
 
@@ -59,6 +74,7 @@ Desktop Interface
 
 ## 🖥️ Supported Systems
 - **Windows** ✅
+- **macOS** ✅
 
 ## ⚠️ Risks
 - **Potential Dangerous Operations by the Model**: The models' performance is still limited and may generate unintended or potentially harmful outputs. Recommend continuously monitoring the AI's actions. 
@@ -74,7 +90,7 @@ Desktop Interface
 - [ ] **Platform**
   - [x] **Windows** 
   - [x] **Mobile** (Send command)
-  - [ ] **Mac**
+  - [x] **macOS**
   - [ ] **Mobile** (Be controlled)
 - [ ] **Support for More MLLMs**
   - [x] **Claude 3.5 Sonnet** 🎵
@@ -87,7 +103,7 @@ Desktop Interface
 ## Join Discussion
 Welcome to discuss with us and continuously improve the user experience of Computer Use - OOTB. Reach us using this [Discord Channel](https://discord.gg/9GQkyWer) or the WeChat QR code below!
 
-<img src="./assets/group_chat_1113.jpg" alt="gradio_interface" width="30%">
+<img src="./assets/wechat_groupchat.jpg" alt="gradio_interface" width="30%">
 
 
 
