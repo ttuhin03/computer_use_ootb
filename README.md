@@ -16,6 +16,7 @@ This is an out-of-the-box (OOTB) solution for Claude's new Computer Use APIs.
 For more information, you can visit our [project page](https://computer-use-ootb.github.io). 🌐
 
 ## Update
+- **[2024/11/20]** We've added some examples to help you get hands-on experience with Claude 3.5 Computer Use.
 - **[2024/11/19]** Forget about the single-display limit set by Anthropic - you can now use **multiple displays** 🎉!
 - **[2024/11/18]** We've released a deep analysis of Claude 3.5 Computer Use: [https://arxiv.org/abs/2411.10323](https://arxiv.org/abs/2411.10323).
 - **[2024/11/11]** Forget about the low-resolution display limit set by Anthropic — you can now use *any resolution you like* and still keep the **screenshot token cost low** 🎉!
