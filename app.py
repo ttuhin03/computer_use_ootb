@@ -307,7 +307,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
         # Initialize Gradio interface with the dropdowns
         with gr.Row():
             # Set initial values
-            initial_category = "Web Navigation"
+            initial_category = "Game Play"
             initial_second_options = list(merged_dict[initial_category].keys())
             initial_third_options = list(merged_dict[initial_category][initial_second_options[0]].keys())
             initial_text_value = merged_dict[initial_category][initial_second_options[0]][initial_third_options[0]]
@@ -325,7 +325,8 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
 
                 # Third dropdown for Task
                 third_menu = gr.Dropdown(
-                    choices=initial_third_options, label="Task", interactive=True, value=initial_third_options[0]
+                    # choices=initial_third_options, label="Task", interactive=True, value=initial_third_options[0]
+                    choices=["Please select a task"]+initial_third_options, label="Task", interactive=True, value="Please select a task"
                 )
 
             with gr.Column(scale=1):
