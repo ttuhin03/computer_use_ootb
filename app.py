@@ -73,7 +73,7 @@ def setup_state(state):
     if "custom_system_prompt" not in state:
         state["custom_system_prompt"] = load_from_storage("system_prompt") or ""
         # remove if want to use default system prompt
-        device_os_name = "Windows" if platform.platform == "Windows" else "Mac" if platform.platform == "Darwin" else "Linux"
+        device_os_name = "Windows" if platform.platform() == "Windows" else "Mac" if platform.platform() == "Darwin" else "Linux"
         state["custom_system_prompt"] += f"\n\nNOTE: you are operating a {device_os_name} machine"
     if "hide_images" not in state:
         state["hide_images"] = False
