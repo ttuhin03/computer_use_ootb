@@ -358,4 +358,4 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     # chat_input.submit(process_input, [chat_input, state], chatbot)
     submit_button.click(process_input, [chat_input, state], chatbot)
 
-demo.launch(share=True)
+demo.launch(share=True, allowed_paths=["./"])  # TODO: allowed_paths
