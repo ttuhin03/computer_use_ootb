@@ -2,4 +2,11 @@
 .ruff_cache
 __pycache__
 .pytest_cache
+.cache
+.ipynb_checkpoints
+.ipynb
+.DS_Store
 /tmp
+/.gradio
+/.zed
+/showui-2b

@@ -6,12 +6,14 @@ import platform
 import asyncio
 import base64
 import os
+import io
 import json
 from datetime import datetime
 from enum import StrEnum
 from functools import partial
 from pathlib import Path
 from typing import cast, Dict
+from PIL import Image
 
 import gradio as gr
 from anthropic import APIResponse
@@ -27,20 +29,20 @@ print(screens)
 from computer_use_demo.loop import (
     PROVIDER_TO_DEFAULT_MODEL_NAME,
     APIProvider,
-    # sampling_loop,
     sampling_loop_sync,
 )
 
 from computer_use_demo.tools import ToolResult
 from computer_use_demo.tools.computer import get_screen_details
+SCREEN_NAMES, SELECTED_SCREEN_INDEX = get_screen_details()
+# SELECTED_SCREEN_INDEX = None
+# SCREEN_NAMES = None
 
 CONFIG_DIR = Path("~/.anthropic").expanduser()
 API_KEY_FILE = CONFIG_DIR / "api_key"
 
 WARNING_TEXT = "⚠️ Security Alert: Never provide access to sensitive accounts or data, as malicious web content can hijack Claude's behavior"
 
-SELECTED_SCREEN_INDEX = None
-SCREEN_NAMES = None
 
 class Sender(StrEnum):
     USER = "user"
@@ -49,19 +51,47 @@ class Sender(StrEnum):
 
 
 def setup_state(state):
+
     if "messages" not in state:
         state["messages"] = []
-    if "api_key" not in state:
-        # Try to load API key from file first, then environment
-        state["api_key"] = load_from_storage("api_key") or os.getenv("ANTHROPIC_API_KEY", "")
-        if not state["api_key"]:
-            print("API key not found. Please set it in the environment or storage.")
+    if "model" not in state:
+        state["model"] = "gpt-4o + ShowUI"
+        # _reset_model(state)
     if "provider" not in state:
-        state["provider"] = os.getenv("API_PROVIDER", "anthropic") or APIProvider.ANTHROPIC
+        if state["model"] == "qwen2vl + ShowUI":
+            state["provider"] = "DashScopeAPI"
+        elif state["model"] == "gpt-4o + ShowUI":
+            state["provider"] = "openai"
+        else:
+            state["provider"] = os.getenv("API_PROVIDER", "anthropic") or "anthropic"
+
     if "provider_radio" not in state:
         state["provider_radio"] = state["provider"]
-    if "model" not in state:
-        _reset_model(state)
+    
+    if "openai_api_key" not in state:  # Fetch API keys from environment variables
+        state["openai_api_key"] = os.getenv("OPENAI_API_KEY", "")
+    if "anthropic_api_key" not in state:
+        state["anthropic_api_key"] = os.getenv("ANTHROPIC_API_KEY", "")    
+    if "qwen_api_key" not in state:
+        state["qwen_api_key"] = os.getenv("QWEN_API_KEY", "")
+    
+    # Set the initial api_key based on the provider
+    if "api_key" not in state:
+        if state["provider"] == "openai":
+            state["api_key"] = state["openai_api_key"]
+        elif state["provider"] == "anthropic":
+            state["api_key"] = state["anthropic_api_key"]
+        elif state["provider"] == "qwen":
+            state["api_key"] = state["qwen_api_key"]
+        else:
+            state["api_key"] = ""
+    # print(f"state['api_key']: {state['api_key']}")
+    if not state["api_key"]:
+        print("API key not found. Please set it in the environment or paste in textbox.")
+
+    if "selected_screen" not in state:
+        state['selected_screen'] = SELECTED_SCREEN_INDEX if SCREEN_NAMES else 0
+
     if "auth_validated" not in state:
         state["auth_validated"] = False
     if "responses" not in state:
@@ -69,7 +99,7 @@ def setup_state(state):
     if "tools" not in state:
         state["tools"] = {}
     if "only_n_most_recent_images" not in state:
-        state["only_n_most_recent_images"] = 2 # 10
+        state["only_n_most_recent_images"] = 10 # 10
     if "custom_system_prompt" not in state:
         state["custom_system_prompt"] = load_from_storage("system_prompt") or ""
         # remove if want to use default system prompt
@@ -77,6 +107,9 @@ def setup_state(state):
         state["custom_system_prompt"] += f"\n\nNOTE: you are operating a {device_os_name} machine"
     if "hide_images" not in state:
         state["hide_images"] = False
+    if 'chatbot_messages' not in state:
+        state['chatbot_messages'] = []
+    
 
 
 def _reset_model(state):
@@ -144,89 +177,114 @@ def _tool_output_callback(tool_output: ToolResult, tool_id: str, tool_state: dic
     tool_state[tool_id] = tool_output
 
 
-def _render_message(sender: Sender, message: str | BetaTextBlock | BetaToolUseBlock | ToolResult, state):
-    is_tool_result = not isinstance(message, str) and (
-        isinstance(message, ToolResult)
-        or message.__class__.__name__ == "ToolResult"
-        or message.__class__.__name__ == "CLIResult"
-    )
-    if not message or (
-        is_tool_result
-        and state["hide_images"]
-        and not hasattr(message, "error")
-        and not hasattr(message, "output")
-    ):
-        return
-    if is_tool_result:
-        message = cast(ToolResult, message)
-        if message.output:
-            return message.output
-        if message.error:
-            return f"Error: {message.error}"
-        if message.base64_image and not state["hide_images"]:
-            return base64.b64decode(message.base64_image)
-    elif isinstance(message, BetaTextBlock) or isinstance(message, TextBlock):
-        return message.text
-    elif isinstance(message, BetaToolUseBlock) or isinstance(message, ToolUseBlock):
-        return f"Tool Use: {message.name}\nInput: {message.input}"
+def chatbot_output_callback(message, chatbot_state, hide_images=False, sender="bot"):
+    
+    def _render_message(message: str | BetaTextBlock | BetaToolUseBlock | ToolResult, hide_images=False):
+    
+        print(f"_render_message: {str(message)[:100]}")
+        
+        if isinstance(message, str):
+            return message
+        
+        is_tool_result = not isinstance(message, str) and (
+            isinstance(message, ToolResult)
+            or message.__class__.__name__ == "ToolResult"
+            or message.__class__.__name__ == "CLIResult"
+        )
+        if not message or (
+            is_tool_result
+            and hide_images
+            and not hasattr(message, "error")
+            and not hasattr(message, "output")
+        ):  # return None if hide_images is True
+            return
+        # render tool result
+        if is_tool_result:
+            message = cast(ToolResult, message)
+            if message.output:
+                return message.output
+            if message.error:
+                return f"Error: {message.error}"
+            if message.base64_image and not hide_images:
+                # somehow can't display via gr.Image
+                # image_data = base64.b64decode(message.base64_image)
+                # return gr.Image(value=Image.open(io.BytesIO(image_data)))
+                return f'<img src="data:image/png;base64,{message.base64_image}">'
+
+        elif isinstance(message, BetaTextBlock) or isinstance(message, TextBlock):
+            return message.text
+        elif isinstance(message, BetaToolUseBlock) or isinstance(message, ToolUseBlock):
+            return f"Tool Use: {message.name}\nInput: {message.input}"
+        else:  
+            return message
+
+    def _truncate_string(s, max_length=500):
+        """Truncate long strings for concise printing."""
+        if isinstance(s, str) and len(s) > max_length:
+            return s[:max_length] + "..."
+        return s
+    # processing Anthropic messages
+    message = _render_message(message, hide_images)
+    
+    if sender == "bot":
+        chatbot_state.append((None, message))
     else:
-        return message
-# open new tab, open google sheets inside, then create a new blank spreadsheet
+        chatbot_state.append((message, None))
+    
+    # Create a concise version of the chatbot state for printing
+    concise_state = [(_truncate_string(user_msg), _truncate_string(bot_msg))
+                        for user_msg, bot_msg in chatbot_state]
+    # print(f"chatbot_output_callback chatbot_state: {concise_state} (truncated)")
 
 def process_input(user_input, state):
-    # Ensure the state is properly initialized
+    
     setup_state(state)
 
-    # Append the user input to the messages in the state
-    state["messages"].append(
-        {
-            "role": Sender.USER,
-            "content": [TextBlock(type="text", text=user_input)],
-        }
-    )
+    # Append the user message to state["messages"]
+    if state["model"] == "gpt-4o + ShowUI" or state["model"] == "qwen2vl + ShowUI":
+        state["messages"].append(
+            {
+                "role": "user",
+                "content": [TextBlock(type="text", text=user_input)],
+            }
+        )
+    elif state["model"] == "claude-3-5-sonnet-20241022":
+        state["messages"].append(
+            {
+                "role": Sender.USER,
+                "content": [TextBlock(type="text", text=user_input)],
+            }
+        )
 
-    # Run the sampling loop synchronously and yield messages
-    for message in yield_message(state):
-        yield message
+    # Append the user's message to chatbot_messages with None for the assistant's reply
+    state['chatbot_messages'].append((user_input, None))
+    yield state['chatbot_messages']  # Yield to update the chatbot UI with the user's message
 
-
-def accumulate_messages(*args, **kwargs):
-    """
-    Wrapper function to accumulate messages from sampling_loop_sync.
-    """
-    accumulated_messages = []
-    global SELECTED_SCREEN_INDEX    
-    print(f"Selected screen: {SELECTED_SCREEN_INDEX}")
-    for message in sampling_loop_sync(*args, selected_screen=SELECTED_SCREEN_INDEX, **kwargs):
-        # Check if the message is already in the accumulated messages
-        if message not in accumulated_messages:
-            accumulated_messages.append(message)
-            # Yield the accumulated messages as a list
-            yield accumulated_messages
-
-
-def yield_message(state):
-    # Ensure the API key is present
-    if not state.get("api_key"):
-        raise ValueError("API key is missing. Please set it in the environment or storage.")
-
-    # Call the sampling loop and yield messages
-    for message in accumulate_messages(
+    # Run sampling_loop_sync with the chatbot_output_callback
+    for loop_msg in sampling_loop_sync(
         system_prompt_suffix=state["custom_system_prompt"],
         model=state["model"],
         provider=state["provider"],
         messages=state["messages"],
-        output_callback=partial(_render_message, Sender.BOT, state=state),
+        output_callback=partial(chatbot_output_callback, chatbot_state=state['chatbot_messages'], hide_images=state["hide_images"]),
         tool_output_callback=partial(_tool_output_callback, tool_state=state["tools"]),
         api_response_callback=partial(_api_response_callback, response_state=state["responses"]),
         api_key=state["api_key"],
         only_n_most_recent_images=state["only_n_most_recent_images"],
-    ):
-        yield message
+        selected_screen=state['selected_screen']
+    ):  
+        if loop_msg is None:
+            yield state['chatbot_messages']
+            print("End of task. Close the loop.")
+            break
+            
+        yield state['chatbot_messages']  # Yield the updated chatbot_messages to update the chatbot UI
 
 
 with gr.Blocks(theme=gr.themes.Soft()) as demo:
     state = gr.State({})  # Use Gradio's state management
+
+    setup_state(state.value)  # Initialize the state
 
     # Retrieve screen details
     gr.Markdown("# Computer Use OOTB")
@@ -234,22 +292,28 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     if not os.getenv("HIDE_WARNING", False):
         gr.Markdown(WARNING_TEXT)
 
-    with gr.Accordion("Settings", open=False): 
+    with gr.Accordion("Settings", open=True): 
         with gr.Row():
             with gr.Column():
-                model = gr.Textbox(label="Model", value="claude-3-5-sonnet-20241022")
+                model = gr.Dropdown(
+                    label="Model",
+                    choices=["gpt-4o + ShowUI", "claude-3-5-sonnet-20241022", "qwen2vl + ShowUI"],
+                    value="gpt-4o + ShowUI",  # Set to one of the choices
+                    interactive=True,
+                )
             with gr.Column():
                 provider = gr.Dropdown(
                     label="API Provider",
                     choices=[option.value for option in APIProvider],
-                    value="anthropic",
-                    interactive=True,
+                    value="openai",
+                    interactive=False,
                 )
             with gr.Column():
                 api_key = gr.Textbox(
-                    label="Anthropic API Key",
+                    label="API Key",
                     type="password",
-                    value="",
+                    value=state.value.get("api_key", ""),
+                    placeholder="Paste your API key here",
                     interactive=True,
                 )
             with gr.Column():
@@ -272,6 +336,8 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
                 only_n_images = gr.Slider(
                     label="N most recent screenshots",
                     minimum=0,
+                    maximum=10,
+                    step=1,
                     value=2,
                     interactive=True,
                 )
@@ -280,6 +346,9 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     # Define the merged dictionary with task mappings
     merged_dict = json.load(open("examples/ootb_examples.json", "r"))
 
+    def update_only_n_images(only_n_images_value, state):
+        state["only_n_most_recent_images"] = only_n_images_value
+    
     # Callback to update the second dropdown based on the first selection
     def update_second_menu(selected_category):
         return gr.update(choices=list(merged_dict.get(selected_category, {}).keys()))
@@ -297,11 +366,86 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
         return prompt, preview_image, task_hint
     
     # Function to update the global variable when the dropdown changes
-    def update_selected_screen(selected_screen_name):
+    def update_selected_screen(selected_screen_name, state):
         global SCREEN_NAMES
         global SELECTED_SCREEN_INDEX
         SELECTED_SCREEN_INDEX = SCREEN_NAMES.index(selected_screen_name)
         print(f"Selected screen updated to: {SELECTED_SCREEN_INDEX}")
+        state['selected_screen'] = SELECTED_SCREEN_INDEX
+
+    def update_model(model_selection, state):
+        state["model"] = model_selection
+        print(f"Model updated to: {state['model']}")
+        
+        if model_selection == "qwen2vl + ShowUI":
+            provider_choices = ["qwen"]
+            provider_value = "qwen"
+            provider_interactive = False
+            api_key_placeholder = "qwen API key"
+        elif model_selection == "gpt-4o + ShowUI":
+            # Set provider to "openai", make it unchangeable
+            provider_choices = ["openai"]
+            provider_value = "openai"
+            provider_interactive = False
+            api_key_placeholder = "openai API key"
+        elif model_selection == "claude-3-5-sonnet-20241022":
+            # Provider can be any of the current choices except 'openai'
+            provider_choices = [option.value for option in APIProvider if option.value != "openai"]
+            provider_value = "anthropic"  # Set default to 'anthropic'
+            provider_interactive = True
+            api_key_placeholder = "claude API key"
+        else:
+            # Default case
+            provider_choices = [option.value for option in APIProvider]
+            provider_value = state.get("provider", provider_choices[0])
+            provider_interactive = True
+            api_key_placeholder = ""
+
+        # Update the provider in state
+        state["provider"] = provider_value
+        
+        # Update api_key in state based on the provider
+        if provider_value == "openai":
+            state["api_key"] = state.get("openai_api_key", "")
+        elif provider_value == "anthropic":
+            state["api_key"] = state.get("anthropic_api_key", "")
+        elif provider_value == "qwen":
+            state["api_key"] = state.get("qwen_api_key", "")
+        else:
+            state["api_key"] = ""
+
+        # Use gr.update() instead of gr.Dropdown.update()
+        provider_update = gr.update(
+            choices=provider_choices,
+            value=provider_value,
+            interactive=provider_interactive
+        )
+
+        # Update the API Key textbox
+        api_key_update = gr.update(
+            placeholder=api_key_placeholder,
+            value=state["api_key"]
+        )
+
+        return provider_update, api_key_update
+    
+    def update_api_key_placeholder(provider_value, model_selection):
+        if model_selection == "claude-3-5-sonnet-20241022":
+            if provider_value == "anthropic":
+                return gr.update(placeholder="anthropic API key")
+            elif provider_value == "bedrock":
+                return gr.update(placeholder="bedrock API key")
+            elif provider_value == "vertex":
+                return gr.update(placeholder="vertex API key")
+            else:
+                return gr.update(placeholder="")
+        elif model_selection == "gpt-4o + ShowUI":
+            return gr.update(placeholder="openai API key")
+        else:
+            return gr.update(placeholder="")
+        
+    def update_system_prompt_suffix(system_prompt_suffix, state):
+        state["custom_system_prompt"] = system_prompt_suffix
 
     with gr.Accordion("Quick Start Prompt", open=False):  # open=False 表示默认收
         # Initialize Gradio interface with the dropdowns
@@ -313,7 +457,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
             initial_text_value = merged_dict[initial_category][initial_second_options[0]][initial_third_options[0]]
 
             with gr.Column(scale=2):
-            # First dropdown for Task Category
+                # First dropdown for Task Category
                 first_menu = gr.Dropdown(
                     choices=list(merged_dict.keys()), label="Task Category", interactive=True, value=initial_category
                 )
@@ -325,12 +469,13 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
 
                 # Third dropdown for Task
                 third_menu = gr.Dropdown(
-                    # choices=initial_third_options, label="Task", interactive=True, value=initial_third_options[0]
-                    choices=["Please select a task"]+initial_third_options, label="Task", interactive=True, value="Please select a task"
+                    choices=initial_third_options, label="Task", interactive=True, value=initial_third_options[0]
+                    # choices=["Please select a task"]+initial_third_options, label="Task", interactive=True, value="Please select a task"
                 )
 
             with gr.Column(scale=1):
-                image_preview = gr.Image(label="Reference Initial State", height=260 - (318.75-280))
+                initial_image_value = "./examples/init_states/honkai_star_rail_showui.png"  # default image path
+                image_preview = gr.Image(value=initial_image_value, label="Reference Initial State", height=260-(318.75-280))
                 hintbox = gr.Markdown("Task Hint: Selected options will appear here.")
 
 
@@ -347,8 +492,11 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
             submit_button = gr.Button(value="Send", variant="primary")
 
     chatbot = gr.Chatbot(label="Chatbot History", autoscroll=True, height=580)
-
-    screen_selector.change(fn=update_selected_screen, inputs=screen_selector, outputs=None)
+    
+    model.change(fn=update_model, inputs=[model, state], outputs=[provider, api_key])
+    provider.change(fn=update_api_key_placeholder, inputs=[provider, model], outputs=api_key)
+    screen_selector.change(fn=update_selected_screen, inputs=[screen_selector, state], outputs=None)
+    only_n_images.change(fn=update_only_n_images, inputs=[only_n_images, state], outputs=None)
     
     # Link callbacks to update dropdowns based on selections
     first_menu.change(fn=update_second_menu, inputs=first_menu, outputs=second_menu)
@@ -358,4 +506,4 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     # chat_input.submit(process_input, [chat_input, state], chatbot)
     submit_button.click(process_input, [chat_input, state], chatbot)
 
-demo.launch(share=True, allowed_paths=["./"])  # TODO: allowed_paths
+demo.launch(share=True, allowed_paths=["./"], server_port=7888)  # TODO: allowed_paths

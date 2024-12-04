@@ -3,6 +3,7 @@ from .bash import BashTool
 from .collection import ToolCollection
 from .computer import ComputerTool
 from .edit import EditTool
+from .screen_capture import get_screenshot
 
 __ALL__ = [
     BashTool,
@@ -11,4 +12,5 @@ __ALL__ = [
     EditTool,
     ToolCollection,
     ToolResult,
+    get_screenshot,
 ]
