@@ -37,17 +37,17 @@ For more information, you can visit our study on Claude 3.5 Computer Use [[proje
 
 ## Demo Video
 
-<!-- new demo -->
-<!-- https://github.com/user-attachments/assets/333e536e-93d0-4a97-8c9b-8f0722c29d51 -->
+https://github.com/user-attachments/assets/f50b7611-2350-4712-af9e-3d31e30020ee
 
 <div style="display: flex; justify-content: space-around;">
   <a href="https://youtu.be/Ychd-t24HZw" target="_blank" style="margin-right: 10px;">
-    <img src="https://img.youtube.com/vi/Ychd-t24HZw/maxresdefault.jpg" alt="Watch the video" width="95%">
+    <img src="https://img.youtube.com/vi/Ychd-t24HZw/maxresdefault.jpg" alt="Watch the video" width="48%">
   </a>
   <a href="https://youtu.be/cvgPBazxLFM" target="_blank">
-    <img src="https://img.youtube.com/vi/cvgPBazxLFM/maxresdefault.jpg" alt="Watch the video" width="95%">
+    <img src="https://img.youtube.com/vi/cvgPBazxLFM/maxresdefault.jpg" alt="Watch the video" width="48%">
   </a>
 </div>
+
 
 ## 🚀 Getting Started
 
