@@ -114,16 +114,15 @@ Open the website at http://localhost:7860/ (if you're controlling the computer i
 Enter the Anthropic API key (you can obtain it through this [website](https://console.anthropic.com/settings/keys)), then give commands to let the AI perform your tasks.
 
 
-<div style="display: flex; justify-content: flex-start; align-items: center; gap: 10px;">
+<div style="display: flex; align-items: center; gap: 10px;">
   <figure style="text-align: center;">
-    <img src="./assets/gradio_mobile.jpg" alt="Mobile Interface" style="max-height: 66%; max-width: 66%; object-fit: contain;">
-    <figcaption>OOTB Mobile Interface</figcaption>
+    <img src="./assets/gradio_mobile.jpg" alt="Mobile Interface" style="height: 700px; width: auto; object-fit: contain;">
   </figure>
-  <figure style="text-align: center; margin-left: -50px;">
-    <img src="./assets/gradio_interface.png" alt="Desktop Interface" style="max-height: 100%; max-width: 100%; object-fit: contain;">
-    <figcaption style="margin-left: 0px;">OOTB Desktop Interface</figcaption>
+  <figure style="text-align: center;">
+    <img src="./assets/gradio_interface.png" alt="Desktop Interface" style="height: 600px; width: auto; object-fit: contain;">
   </figure>
 </div>
+
 
 
 ## 🖥️ Supported Systems
