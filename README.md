@@ -5,8 +5,6 @@
 </h2>
 
 
-
-
 <h5 align="center"> If you like our project, please give us a star ⭐ on GitHub for the latest update.</h5>
 
 <h5 align=center>
@@ -116,10 +114,7 @@ Enter the Anthropic API key (you can obtain it through this [website](https://co
 
 <div style="display: flex; align-items: center; gap: 10px;">
   <figure style="text-align: center;">
-    <img src="./assets/gradio_mobile.jpg" alt="Mobile Interface" style="height: 700px; width: auto; object-fit: contain;">
-  </figure>
-  <figure style="text-align: center;">
-    <img src="./assets/gradio_interface.png" alt="Desktop Interface" style="height: 600px; width: auto; object-fit: contain;">
+    <img src="./assets/gradio_interface.png" alt="Desktop Interface" style="width: auto; object-fit: contain;">
   </figure>
 </div>
 
