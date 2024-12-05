@@ -51,7 +51,9 @@ https://github.com/user-attachments/assets/f50b7611-2350-4712-af9e-3d31e30020ee
 
 ### 0. Prerequisites
 - Instal Miniconda on your system through this [link](https://www.anaconda.com/download?utm_source=anacondadocs&utm_medium=documentation&utm_campaign=download&utm_content=topnavalldocs). (**Python Version: >= 3.11**).
-
+- Hardware Requirements:
+    - **Windows:** Must include CUDA, with a GPU memory greater than 6GB.
+    - **Mac:** Processor must be M1 or higher, with a memory of at least 16GB.
 
 ### 1. Clone the Repository 📂
 Open the Conda Terminal. (After installation Of Miniconda, it will appear in the Start menu.)
