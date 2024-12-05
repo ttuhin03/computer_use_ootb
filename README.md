@@ -96,7 +96,7 @@ If you successfully start the interface, you will see two URLs in the terminal:
 ```
 
 
-> <u>For convenience</u>, we recommend running one or more of the following command to set API keys to the environment variables before starting the interface. Then you don’t need to manually pass the keys each run. On Windows: 
+> <u>For convenience</u>, we recommend running one or more of the following command to set API keys to the environment variables before starting the interface. Then you don’t need to manually pass the keys each run. On Windows Powershell (via the `set` command if on cmd): 
 > ```bash
 > $env:ANTHROPIC_API_KEY="sk-xxxxx" (Replace with your own key)
 > $env:QWEN_API_KEY="sk-xxxxx"
