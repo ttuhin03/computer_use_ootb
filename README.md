@@ -51,9 +51,10 @@ https://github.com/user-attachments/assets/f50b7611-2350-4712-af9e-3d31e30020ee
 
 ### 0. Prerequisites
 - Instal Miniconda on your system through this [link](https://www.anaconda.com/download?utm_source=anacondadocs&utm_medium=documentation&utm_campaign=download&utm_content=topnavalldocs). (**Python Version: >= 3.11**).
-- Hardware Requirements:
-    - **Windows:** Must include CUDA, with a GPU memory greater than 6GB.
-    - **Mac:** Processor must be M1 or higher, with a memory of at least 16GB.
+- Hardware Requirements (optional, for ShowUI local-run):
+    - **Windows (CUDA-enabled):** A compatible NVIDIA GPU with CUDA support, >=6GB GPU memory
+    - **macOS (Apple Silicon):** M1 chip (or newer), >=16GB unified RAM
+
 
 ### 1. Clone the Repository 📂
 Open the Conda Terminal. (After installation Of Miniconda, it will appear in the Start menu.)
@@ -67,8 +68,6 @@ cd computer_use_ootb
 ```bash
 pip install -r dev-requirements.txt
 ```
-
-
 
 ### 2.2 (Optional) Get Prepared for **<span style="color:rgb(106, 158, 210)">S</span><span style="color:rgb(111, 163, 82)">h</span><span style="color:rgb(209, 100, 94)">o</span><span style="color:rgb(238, 171, 106)">w</span>UI** Local-Run
 
@@ -166,7 +165,6 @@ Welcome to discuss with us and continuously improve the user experience of Compu
 <a href="https://computer-use-ootb.github.io">
 <img src="./assets/ootb_logo.png" alt="Logo" width="30%" style="display: block; margin: 0 auto; filter: invert(1) brightness(2);">
 </a>
-
 
 
 
