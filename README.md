@@ -24,7 +24,7 @@
 For more information, you can visit our study on Claude 3.5 Computer Use [[project page]](https://computer-use-ootb.github.io). 🌐
 
 ## Update
-- **<span style="color:rgb(231, 183, 98)">Major Update!</span> [2024/11/27]** **Local Run🔥** is now live! Say hello to [**<span style="color:rgb(106, 158, 210)">S</span><span style="color:rgb(111, 163, 82)">h</span><span style="color:rgb(209, 100, 94)">o</span><span style="color:rgb(238, 171, 106)">w</span>UI**](https://github.com/showlab/ShowUI), a open-source 2B vision-language-action (VLA) model for GUI Agent. Now compatible with `"gpt-4o + ShowUI" (~200x cheaper)`*  & `"Qwen2-VL + ShowUI" (~30x cheaper)`* for only few cents for each task💰! <span style="color: grey; font-size: small;">*compared to Claude Computer Use</span>.
+- **<span style="color:rgb(231, 183, 98)">Major Update!</span> [2024/12/04]** **Local Run🔥** is now live! Say hello to [**<span style="color:rgb(106, 158, 210)">S</span><span style="color:rgb(111, 163, 82)">h</span><span style="color:rgb(209, 100, 94)">o</span><span style="color:rgb(238, 171, 106)">w</span>UI**](https://github.com/showlab/ShowUI), a open-source 2B vision-language-action (VLA) model for GUI Agent. Now compatible with `"gpt-4o + ShowUI" (~200x cheaper)`*  & `"Qwen2-VL + ShowUI" (~30x cheaper)`* for only few cents for each task💰! <span style="color: grey; font-size: small;">*compared to Claude Computer Use</span>.
 - **[2024/11/20]** We've added some examples to help you get hands-on experience with Claude 3.5 Computer Use.
 - **[2024/11/19]** Forget about the single-display limit set by Anthropic - you can now use **multiple displays** 🎉!
 - **[2024/11/18]** We've released a deep analysis of Claude 3.5 Computer Use: [https://arxiv.org/abs/2411.10323](https://arxiv.org/abs/2411.10323).
@@ -51,9 +51,10 @@ https://github.com/user-attachments/assets/f50b7611-2350-4712-af9e-3d31e30020ee
 
 ### 0. Prerequisites
 - Instal Miniconda on your system through this [link](https://www.anaconda.com/download?utm_source=anacondadocs&utm_medium=documentation&utm_campaign=download&utm_content=topnavalldocs). (**Python Version: >= 3.11**).
-- Hardware Requirements:
-    - **Windows:** Must include CUDA, with a GPU memory greater than 6GB.
-    - **Mac:** Processor must be M1 or higher, with a memory of at least 16GB.
+- Hardware Requirements (optional, for ShowUI local-run):
+    - **Windows (CUDA-enabled):** A compatible NVIDIA GPU with CUDA support, >=6GB GPU memory
+    - **macOS (Apple Silicon):** M1 chip (or newer), >=16GB unified RAM
+
 
 ### 1. Clone the Repository 📂
 Open the Conda Terminal. (After installation Of Miniconda, it will appear in the Start menu.)
@@ -67,8 +68,6 @@ cd computer_use_ootb
 ```bash
 pip install -r dev-requirements.txt
 ```
-
-
 
 ### 2.2 (Optional) Get Prepared for **<span style="color:rgb(106, 158, 210)">S</span><span style="color:rgb(111, 163, 82)">h</span><span style="color:rgb(209, 100, 94)">o</span><span style="color:rgb(238, 171, 106)">w</span>UI** Local-Run
 
@@ -96,7 +95,7 @@ If you successfully start the interface, you will see two URLs in the terminal:
 ```
 
 
-> <u>For convenience</u>, we recommend running one or more of the following command to set API keys to the environment variables before starting the interface. Then you don’t need to manually pass the keys each run. On Windows: 
+> <u>For convenience</u>, we recommend running one or more of the following command to set API keys to the environment variables before starting the interface. Then you don’t need to manually pass the keys each run. On Windows Powershell (via the `set` command if on cmd): 
 > ```bash
 > $env:ANTHROPIC_API_KEY="sk-xxxxx" (Replace with your own key)
 > $env:QWEN_API_KEY="sk-xxxxx"
@@ -149,6 +148,8 @@ Enter the Anthropic API key (you can obtain it through this [website](https://co
   - [ ] ...
 - [ ] **Improved Prompting Strategy**
   - [ ] Optimize prompts for cost-efficiency. 💡
+- [ ] **Improved Inference Speed**
+  - [ ] Support int8 Quantization.
 
 ## Join Discussion
 Welcome to discuss with us and continuously improve the user experience of Computer Use - OOTB. Reach us using this [**Discord Channel**](https://discord.gg/HnHng5de) or the WeChat QR code below!
@@ -166,7 +167,6 @@ Welcome to discuss with us and continuously improve the user experience of Compu
 <a href="https://computer-use-ootb.github.io">
 <img src="./assets/ootb_logo.png" alt="Logo" width="30%" style="display: block; margin: 0 auto; filter: invert(1) brightness(2);">
 </a>
-
 
 
 
