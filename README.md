@@ -148,6 +148,8 @@ Enter the Anthropic API key (you can obtain it through this [website](https://co
   - [ ] ...
 - [ ] **Improved Prompting Strategy**
   - [ ] Optimize prompts for cost-efficiency. 💡
+- [ ] **Improved Inference Speed**
+  - [ ] Support int8 Quantization.
 
 ## Join Discussion
 Welcome to discuss with us and continuously improve the user experience of Computer Use - OOTB. Reach us using this [**Discord Channel**](https://discord.gg/HnHng5de) or the WeChat QR code below!
