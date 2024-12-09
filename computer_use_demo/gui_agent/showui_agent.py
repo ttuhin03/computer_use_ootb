@@ -74,6 +74,7 @@ class ShowUIActor:
             torch_dtype=torch.bfloat16,
             device_map="cpu"
         ).to(self.device)
+        self.model.eval()
         
         self.min_pixels = 256 * 28 * 28
         self.max_pixels = 1344 * 28 * 28
@@ -125,7 +126,9 @@ class ShowUIActor:
         )
         inputs = inputs.to(self.device)
         
-        generated_ids = self.model.generate(**inputs, max_new_tokens=128)
+        with torch.no_grad():
+            generated_ids = self.model.generate(**inputs, max_new_tokens=128)
+            
         generated_ids_trimmed = [
             out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
         ]
