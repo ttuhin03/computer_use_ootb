@@ -32,3 +32,10 @@ class ToolCollection:
             return await tool(**tool_input)
         except ToolError as e:
             return ToolFailure(error=e.message)
+        
+    def sync_call(self, *, name: str, tool_input: dict[str, Any]) -> ToolResult:
+        print(f"sync_call: {name} {tool_input}")
+        tool = self.tool_map.get(name)
+        if not tool:
+            return ToolFailure(error=f"Tool {name} is invalid")
+        return tool.sync_call(**tool_input)

@@ -50,7 +50,8 @@ def run_qwen(messages: list, system: str, llm: str, api_key: str, max_tokens=256
     print("[qwen-vl] sending messages:", final_messages)
 
     response = dashscope.MultiModalConversation.call(
-        model='qwen-vl-max-0809',
+        model='qwen-vl-max-latest',
+        # model='qwen-vl-max-0809',
         messages=final_messages
         )
 

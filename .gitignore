@@ -9,4 +9,8 @@ __pycache__
 /tmp
 /.gradio
 /.zed
-/showui-2b
+/showui*
+/demo
+/Qwen*
+/install_tools/install_qwen*
+/dev_tools*

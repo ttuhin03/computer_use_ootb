@@ -11,19 +11,17 @@ from anthropic.types import TextBlock, ToolResultBlockParam
 from anthropic.types.beta import BetaMessage, BetaTextBlock, BetaToolUseBlock, BetaMessageParam
 
 from computer_use_demo.tools.screen_capture import get_screenshot
-from computer_use_demo.gui_agent.llm_utils.oai import run_oai_interleaved, encode_image
+from computer_use_demo.gui_agent.llm_utils.oai import run_oai_interleaved
 from computer_use_demo.gui_agent.llm_utils.qwen import run_qwen
-from computer_use_demo.gui_agent.llm_utils.llm_utils import extract_data
+from computer_use_demo.gui_agent.llm_utils.llm_utils import extract_data, encode_image
 from computer_use_demo.tools.colorful_text import colorful_text_showui, colorful_text_vlm
 
+import torch
+from transformers import Qwen2VLForConditionalGeneration, AutoTokenizer, AutoProcessor
+from qwen_vl_utils import process_vision_info
 
-SYSTEM_PROMPT = f"""<SYSTEM_CAPABILITY>
-* You are utilizing a Windows system with internet access.
-* The current date is {datetime.today().strftime('%A, %B %d, %Y')}.
-</SYSTEM_CAPABILITY>
-"""
 
-class VLMPlanner:
+class APIVLMPlanner:
     def __init__(
         self,
         model: str, 
@@ -36,13 +34,30 @@ class VLMPlanner:
         only_n_most_recent_images: int | None = None,
         selected_screen: int = 0,
         print_usage: bool = True,
+        device: torch.device = torch.device("cpu"),
     ):
+        self.device = device
         if model == "gpt-4o + ShowUI":
             self.model = "gpt-4o-2024-11-20"
         elif model == "gpt-4o-mini + ShowUI":
             self.model = "gpt-4o-mini"  # "gpt-4o-mini"
-        elif model == "qwen2vl + ShowUI":
-            self.model = "qwen2vl"
+        elif model == "qwen2-vl-max + ShowUI":
+            self.model = "qwen2-vl-max"
+        elif model == "qwen-vl-7b-instruct + ShowUI":  # local model
+            self.model = "qwen-vl-7b-instruct"
+            self.local_model = Qwen2VLForConditionalGeneration.from_pretrained(
+                # "Qwen/Qwen2-VL-7B-Instruct",
+                "./Qwen2-VL-7B-Instruct",
+                torch_dtype=torch.bfloat16,
+                device_map="cpu"
+            ).to(self.device)
+            self.min_pixels = 256 * 28 * 28
+            self.max_pixels = 1344 * 28 * 28
+            self.processor = AutoProcessor.from_pretrained(
+                "./Qwen2-VL-7B-Instruct",
+                min_pixels=self.min_pixels,
+                max_pixels=self.max_pixels
+            )
         else:
             raise ValueError(f"Model {model} not supported")
         
@@ -54,26 +69,22 @@ class VLMPlanner:
         self.only_n_most_recent_images = only_n_most_recent_images
         self.selected_screen = selected_screen
         self.output_callback = output_callback
+        self.system_prompt = self._get_system_prompt() + self.system_prompt_suffix
+
 
         self.print_usage = print_usage
         self.total_token_usage = 0
         self.total_cost = 0
 
-        self.system = (
-            # f"{SYSTEM_PROMPT}{' ' + system_prompt_suffix if system_prompt_suffix else ''}"
-            f"{system_prompt_suffix}"
-        )
            
     def __call__(self, messages: list):
         
         # drop looping actions msg, byte image etc
         planner_messages = _message_filter_callback(messages)  
-        # print(f"filtered_messages: {planner_messages}")
+        print(f"filtered_messages: {planner_messages}")
 
         if self.only_n_most_recent_images:
             _maybe_filter_to_n_most_recent_images(planner_messages, self.only_n_most_recent_images)
-
-        system = self._get_system_prompt() + self.system_prompt_suffix
 
         # Take a screenshot
         screenshot, screenshot_path = get_screenshot(selected_screen=self.selected_screen)
@@ -81,18 +92,55 @@ class VLMPlanner:
         image_base64 = encode_image(screenshot_path)
         self.output_callback(f'Screenshot for {colorful_text_vlm}:\n<img src="data:image/png;base64,{image_base64}">',
                              sender="bot")
-
+        
         if isinstance(planner_messages[-1], dict):
             if not isinstance(planner_messages[-1]["content"], list):
                 planner_messages[-1]["content"] = [planner_messages[-1]["content"]]
             planner_messages[-1]["content"].append(screenshot_path)
 
-        print(f"Sending messages to VLMPlanner : {planner_messages}")
+        print(f"Sending messages to VLMPlanner: {planner_messages}")
 
-        if "gpt" in self.model:
+        if self.model == "qwen-vl-7b-instruct":
+            
+            messages_for_processor = [
+                {
+                    "role": "system",
+                    "content": [{"type": "text", "text": self.system_prompt}]
+                },
+                {
+                    "role": "user",
+                    "content": [
+                    {"type": "image", "image": screenshot_path, "min_pixels": self.min_pixels, "max_pixels": self.max_pixels},
+                    {"type": "text", "text": f"Task: {''.join(planner_messages)}"}
+                ],
+            }]
+            
+            text = self.processor.apply_chat_template(
+                messages_for_processor, tokenize=False, add_generation_prompt=True
+            )
+            image_inputs, video_inputs = process_vision_info(messages_for_processor)
+            
+            inputs = self.processor(
+                text=[text],
+                images=image_inputs,
+                videos=video_inputs,
+                padding=True,
+                return_tensors="pt",
+            )
+            inputs = inputs.to(self.device)
+
+            generated_ids = self.local_model.generate(**inputs, max_new_tokens=128)
+            generated_ids_trimmed = [
+                out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
+            ]
+            vlm_response = self.processor.batch_decode(
+                generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
+            )[0]
+
+        elif self.model == "gpt-4o-2024-11-20":
             vlm_response, token_usage = run_oai_interleaved(
                 messages=planner_messages,
-                system=system,
+                system=self.system_prompt,
                 llm=self.model,
                 api_key=self.api_key,
                 max_tokens=self.max_tokens,
@@ -102,10 +150,10 @@ class VLMPlanner:
             self.total_token_usage += token_usage
             self.total_cost += (token_usage * 0.15 / 1000000)  # https://openai.com/api/pricing/
             
-        elif "qwen" in self.model:
+        elif self.model == "qwen2-vl-max":
             vlm_response, token_usage = run_qwen(
                 messages=planner_messages,
-                system=system,
+                system=self.system_prompt,
                 llm=self.model,
                 api_key=self.api_key,
                 max_tokens=self.max_tokens,
@@ -127,7 +175,7 @@ class VLMPlanner:
         # vlm_plan_str = '\n'.join([f'{key}: {value}' for key, value in json.loads(response).items()])
         vlm_plan_str = ""
         for key, value in json.loads(vlm_response_json).items():
-            if key == "Reasoning":
+            if key == "Thinking":
                 vlm_plan_str += f'{value}'
             else:
                 vlm_plan_str += f'\n{key}: {value}'
@@ -145,7 +193,6 @@ class VLMPlanner:
         pass
 
     def _get_system_prompt(self):
-        datetime_str = datetime.now().strftime("%A, %B %d, %Y")
         os_name = platform.system()
         return f"""
 You are using an {os_name} device.
@@ -168,7 +215,7 @@ Your available "Next Action" only include:
 Output format:
 ```json
 {{
-    "Reasoning": str, # describe your thoughts on how to achieve the task, choose one action from available actions at a time.
+    "Thinking": str, # describe your thoughts on how to achieve the task, choose one action from available actions at a time.
     "Next Action": "action_type, action description" | "None" # one action at a time, describe it in short and precisely. 
 }}
 ```
@@ -176,16 +223,17 @@ Output format:
 One Example:
 ```json
 {{  
-    "Reasoning": "I need to search and navigate to amazon.com.",
+    "Thinking": "I need to search and navigate to amazon.com.",
     "Next Action": "CLICK 'Search Google or type a URL'."
 }}
 ```
 
 IMPORTANT NOTES:
-1. You should only give a single action at a time. for example, INPUT text, and ENTER can't be in one Next Action.
-2. Attach the text to Next Action, if there is text or any description for the button. 
-3. You should not include other actions, such as keyboard shortcuts.
-4. When the task is completed, you should say "Next Action": "None" in the json field.
+1. Carefully observe the screenshot to understand the current state and read history actions.
+2. You should only give a single action at a time. for example, INPUT text, and ENTER can't be in one Next Action.
+3. Attach the text to Next Action, if there is text or any description for the button. 
+4. You should not include other actions, such as keyboard shortcuts.
+5. When the task is completed, you should say "Next Action": "None" in the json field.
 """ 
 
     

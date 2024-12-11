@@ -58,10 +58,12 @@ def setup_state(state):
         state["model"] = "gpt-4o + ShowUI"
         # _reset_model(state)
     if "provider" not in state:
-        if state["model"] == "qwen2vl + ShowUI":
+        if state["model"] == "qwen2-vl-max + ShowUI":
             state["provider"] = "DashScopeAPI"
         elif state["model"] == "gpt-4o + ShowUI":
             state["provider"] = "openai"
+        # elif state["model"] == "qwen-vl-7b-instruct + ShowUI":
+        #     state["provider"] = "local-run (not applicable)"
         else:
             state["provider"] = os.getenv("API_PROVIDER", "anthropic") or "anthropic"
 
@@ -109,6 +111,13 @@ def setup_state(state):
         state["hide_images"] = False
     if 'chatbot_messages' not in state:
         state['chatbot_messages'] = []
+        
+    if "showui_config" not in state:
+        state["showui_config"] = "Default"
+    if "max_pixels" not in state:
+        state["max_pixels"] = 1344
+    if "awq_4bit" not in state:
+        state["awq_4bit"] = False
     
 
 
@@ -241,17 +250,17 @@ def process_input(user_input, state):
     setup_state(state)
 
     # Append the user message to state["messages"]
-    if state["model"] == "gpt-4o + ShowUI" or state["model"] == "qwen2vl + ShowUI":
-        state["messages"].append(
-            {
-                "role": "user",
-                "content": [TextBlock(type="text", text=user_input)],
-            }
-        )
-    elif state["model"] == "claude-3-5-sonnet-20241022":
+    if state["model"] == "claude-3-5-sonnet-20241022":
         state["messages"].append(
             {
                 "role": Sender.USER,
+                "content": [TextBlock(type="text", text=user_input)],
+            }
+        )
+    else:
+        state["messages"].append(
+            {
+                "role": "user",
                 "content": [TextBlock(type="text", text=user_input)],
             }
         )
@@ -271,7 +280,9 @@ def process_input(user_input, state):
         api_response_callback=partial(_api_response_callback, response_state=state["responses"]),
         api_key=state["api_key"],
         only_n_most_recent_images=state["only_n_most_recent_images"],
-        selected_screen=state['selected_screen']
+        selected_screen=state['selected_screen'],
+        showui_max_pixels=state['max_pixels'],
+        showui_awq_4bit=state['awq_4bit']
     ):  
         if loop_msg is None:
             yield state['chatbot_messages']
@@ -282,8 +293,8 @@ def process_input(user_input, state):
 
 
 with gr.Blocks(theme=gr.themes.Soft()) as demo:
+    
     state = gr.State({})  # Use Gradio's state management
-
     setup_state(state.value)  # Initialize the state
 
     # Retrieve screen details
@@ -297,7 +308,11 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
             with gr.Column():
                 model = gr.Dropdown(
                     label="Model",
-                    choices=["gpt-4o + ShowUI", "claude-3-5-sonnet-20241022", "qwen2vl + ShowUI"],
+                    choices=["gpt-4o + ShowUI",
+                             "qwen2-vl-max + ShowUI",
+                            #  "qwen-vl-7b-instruct + ShowUI",
+                             "claude-3-5-sonnet-20241022",
+                             ],
                     value="gpt-4o + ShowUI",  # Set to one of the choices
                     interactive=True,
                 )
@@ -341,10 +356,43 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
                     value=2,
                     interactive=True,
                 )
+    
+    with gr.Accordion("ShowUI Advanced Settings", open=False):  
+        
+        gr.Markdown("""
+                    **Note:** Adjust these settings to fine-tune the resource (**memory** and **infer time**) and performance trade-offs of ShowUI. \\
+                    Quantization model requires additional download. Please refer to [Computer Use OOTB - #ShowUI Advanced Settings guide](https://github.com/showlab/computer_use_ootb?tab=readme-ov-file#showui-advanced-settings) for preparation for this feature.
+                    """)
+
+        # New configuration for ShowUI
+        with gr.Row():
+            with gr.Column():
+                showui_config = gr.Dropdown(
+                    label="ShowUI Preset Configuration",
+                    choices=["Default (Maximum)", "Medium", "Minimal", "Custom"],
+                    value="Default (Maximum)",
+                    interactive=True,
+                )
+            with gr.Column():
+                max_pixels = gr.Slider(
+                    label="Max Pixels",
+                    minimum=720,
+                    maximum=1344,
+                    step=16,
+                    value=1344,
+                    interactive=False,
+                )
+            with gr.Column():
+                awq_4bit = gr.Checkbox(
+                    label="Enable AWQ-4bit Model",
+                    value=False,
+                    interactive=False
+                )
+            
         # hide_images = gr.Checkbox(label="Hide screenshots", value=False)
 
     # Define the merged dictionary with task mappings
-    merged_dict = json.load(open("examples/ootb_examples.json", "r"))
+    merged_dict = json.load(open("assets/examples/ootb_examples.json", "r"))
 
     def update_only_n_images(only_n_images_value, state):
         state["only_n_most_recent_images"] = only_n_images_value
@@ -377,7 +425,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
         state["model"] = model_selection
         print(f"Model updated to: {state['model']}")
         
-        if model_selection == "qwen2vl + ShowUI":
+        if model_selection == "qwen2-vl-max + ShowUI":
             provider_choices = ["qwen"]
             provider_value = "qwen"
             provider_interactive = False
@@ -446,6 +494,36 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
         
     def update_system_prompt_suffix(system_prompt_suffix, state):
         state["custom_system_prompt"] = system_prompt_suffix
+        
+    # When showui_config changes, we set the max_pixels and awq_4bit accordingly.
+    def handle_showui_config_change(showui_config_val, state):
+        if showui_config_val == "Default (Maximum)":
+            state["max_pixels"] = 1344
+            state["awq_4bit"] = False
+            return (
+                gr.update(value=1344, interactive=False), 
+                gr.update(value=False, interactive=False)
+            )
+        elif showui_config_val == "Medium":
+            state["max_pixels"] = 1024
+            state["awq_4bit"] = False
+            return (
+                gr.update(value=1024, interactive=False), 
+                gr.update(value=False, interactive=False)
+            )
+        elif showui_config_val == "Minimal":
+            state["max_pixels"] = 1024
+            state["awq_4bit"] = True
+            return (
+                gr.update(value=1024, interactive=False), 
+                gr.update(value=True, interactive=False)
+            )
+        elif showui_config_val == "Custom":
+            # Do not overwrite the current user values, just make them interactive
+            return (
+                gr.update(interactive=True), 
+                gr.update(interactive=True)
+            )
 
     with gr.Accordion("Quick Start Prompt", open=False):  # open=False 表示默认收
         # Initialize Gradio interface with the dropdowns
@@ -474,7 +552,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
                 )
 
             with gr.Column(scale=1):
-                initial_image_value = "./examples/init_states/honkai_star_rail_showui.png"  # default image path
+                initial_image_value = "./assets/examples/init_states/honkai_star_rail_showui.png"  # default image path
                 image_preview = gr.Image(value=initial_image_value, label="Reference Initial State", height=260-(318.75-280))
                 hintbox = gr.Markdown("Task Hint: Selected options will appear here.")
 
@@ -497,6 +575,11 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     provider.change(fn=update_api_key_placeholder, inputs=[provider, model], outputs=api_key)
     screen_selector.change(fn=update_selected_screen, inputs=[screen_selector, state], outputs=None)
     only_n_images.change(fn=update_only_n_images, inputs=[only_n_images, state], outputs=None)
+    
+    # When showui_config changes, we update max_pixels and awq_4bit automatically.
+    showui_config.change(fn=handle_showui_config_change, 
+                         inputs=[showui_config, state], 
+                         outputs=[max_pixels, awq_4bit])
     
     # Link callbacks to update dropdowns based on selections
     first_menu.change(fn=update_second_menu, inputs=first_menu, outputs=second_menu)

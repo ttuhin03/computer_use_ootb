@@ -104,6 +104,6 @@ def parse_input(code):
 
 if __name__ == "__main__":
     import json
-    s='{"Reasoning": "The Docker icon has been successfully clicked, and the Docker application should now be opening. No further actions are required.", "Next Action": None}'
+    s='{"Thinking": "The Docker icon has been successfully clicked, and the Docker application should now be opening. No further actions are required.", "Next Action": None}'
     json_str = json.loads(s)
     print(json_str)

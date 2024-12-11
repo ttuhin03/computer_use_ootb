@@ -71,9 +71,7 @@ def sampling_loop_sync(
     api_key: str,
     only_n_most_recent_images: int | None = None,
     max_tokens: int = 4096,
-    selected_screen: int = 0,
-    showui_max_pixels: int = 1344,
-    showui_awq_4bit: bool = False
+    selected_screen: int = 0
 ):
     """
     Synchronous agentic sampling loop for the assistant/tool interaction of computer use.
@@ -126,20 +124,14 @@ def sampling_loop_sync(
                 output_callback=output_callback,
                 device=device
             )
-            
-        if showui_awq_4bit:
-            showui_model_path = "./showui-2b-awq-4bit/"
-        else:
-            showui_model_path = "./showui-2b/"
+        
         actor = ShowUIActor(
-            model_path=showui_model_path,  
+            model_path="./showui-2b/",  
             # Replace with your local path, e.g., "C:\\code\\ShowUI-2B", "/Users/your_username/ShowUI-2B/".
             device=device,  
             split='desktop',  # 'desktop' or 'phone'
             selected_screen=selected_screen,
             output_callback=output_callback,
-            max_pixels=showui_max_pixels,
-            awq_4bit=showui_awq_4bit
         )
         
         executor = ShowUIExecutor(

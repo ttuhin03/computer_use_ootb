@@ -32,9 +32,7 @@ class ShowUIExecutor:
         print("Screen BBox:", self.screen_bbox)
         
         self.tool_collection = ToolCollection(
-            ComputerTool(selected_screen=selected_screen, is_scaling=False),
-            BashTool(),
-            EditTool(),
+            ComputerTool(selected_screen=selected_screen, is_scaling=False)
         )
         
         self.supported_action_type={
@@ -84,10 +82,10 @@ class ShowUIExecutor:
                     messages.append(new_message)
 
                 # Run the asynchronous tool execution in a synchronous context
-                result = asyncio.run(self.tool_collection.run(
+                result = self.tool_collection.sync_call(
                     name=sim_content_block.name,
                     tool_input=cast(dict[str, Any], sim_content_block.input),
-                ))
+                )
                 
                 tool_result_content.append(
                     _make_api_tool_result(result, sim_content_block.id)
@@ -101,10 +99,6 @@ class ShowUIExecutor:
                 # Send the messages to the gradio
                 for user_msg, bot_msg in display_messages:
                     yield [user_msg, bot_msg], tool_result_content
-
-        # if not tool_result_content:
-        #     print(f"executor: No tool result content. Return {messages}.")
-        #     return messages
         
         return tool_result_content
     
@@ -204,6 +198,7 @@ class ShowUIExecutor:
             print(f"Error parsing output: {e}")
             return None
         
+
     def _get_screen_resolution(self):
         from screeninfo import get_monitors
         import platform

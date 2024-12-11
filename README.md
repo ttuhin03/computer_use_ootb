@@ -74,7 +74,7 @@ pip install -r dev-requirements.txt
 1. Download all files of the ShowUI-2B model via the following command. Ensure the `ShowUI-2B` folder is under the `computer_use_ootb` folder.
 
     ```python
-    python install_showui.py
+    python install_tools/install_showui.py
     ```
 
 2. Make sure to install the correct GPU version of PyTorch (CUDA, MPS, etc.) on your machine. See [install guide and verification](https://pytorch.org/get-started/locally/).
@@ -113,6 +113,17 @@ Open the website at http://localhost:7860/ (if you're controlling the computer i
 Enter the Anthropic API key (you can obtain it through this [website](https://console.anthropic.com/settings/keys)), then give commands to let the AI perform your tasks.
 
 
+## ShowUI Advanced Settings
+
+We provide a 4-bit quantized ShowUI-2B model for cost-efficient inference (currently **only support CUDA devices**). To download the 4-bit quantized ShowUI-2B model:
+```
+python install_tools/install_showui-awq-4bit.py
+```
+Then, enable the quantized setting in the 'ShowUI Advanced Settings' dropdown menu.
+
+Besides, we also provide a slider to quickly adjust the `max_pixel` parameter in the ShowUI model. This controls the visual input size of the model and greatly affects the memory and inference speed.
+
+
 <div style="display: flex; align-items: center; gap: 10px;">
   <figure style="text-align: center;">
     <img src="./assets/gradio_interface.png" alt="Desktop Interface" style="width: auto; object-fit: contain;">
@@ -148,11 +159,11 @@ Enter the Anthropic API key (you can obtain it through this [website](https://co
   - [ ] ...
 - [ ] **Improved Prompting Strategy**
   - [ ] Optimize prompts for cost-efficiency. 💡
-- [ ] **Improved Inference Speed**
-  - [ ] Support int8 Quantization.
+- [x] **Improved Inference Speed**
+  - [x] Support int4 Quantization.
 
 ## Join Discussion
-Welcome to discuss with us and continuously improve the user experience of Computer Use - OOTB. Reach us using this [**Discord Channel**](https://discord.gg/HnHng5de) or the WeChat QR code below!
+Welcome to discuss with us and continuously improve the user experience of Computer Use - OOTB. Reach us using this [**Discord Channel**](https://discord.gg/vMMJTSew37) or the WeChat QR code below!
 
 <div style="display: flex; flex-direction: row; justify-content: space-around;">
 

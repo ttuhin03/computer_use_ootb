@@ -20,7 +20,8 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
 class ShowUIActor:
-    _NAV_SYSTEM = """You are an assistant trained to navigate the {_APP} screen. 
+    _NAV_SYSTEM = """
+    You are an assistant trained to navigate the {_APP} screen. 
     Given a task instruction, a screen observation, and an action history sequence, 
     output the next action and wait for the next observation. 
     Here is the action space:
@@ -37,20 +38,15 @@ class ShowUIActor:
     """
 
     action_map = {
-    'web': """
+    'desktop': """
         1. CLICK: Click on an element, value is not applicable and the position [x,y] is required. 
         2. INPUT: Type a string into an element, value is a string to type and the position [x,y] is required. 
-        3. SELECT: Select a value for an element, value is not applicable and the position [x,y] is required. 
-        4. HOVER: Hover on an element, value is not applicable and the position [x,y] is required.
-        5. ANSWER: Answer the question, value is the answer and the position is not applicable.
-        6. ENTER: Enter operation, value and position are not applicable.
-        7. SCROLL: Scroll the screen, value is the direction to scroll and the position is not applicable.
-        8. SELECT_TEXT: Select some text content, value is not applicable and position [[x1,y1], [x2,y2]] is the start and end position of the select operation.
-        9. COPY: Copy the text, value is the text to copy and the position is not applicable.
-        10. ESC: ESCAPE operation, value and position are not applicable.
-        11. PRESS: Long click on an element, value is not applicable and the position [x,y] is required. 
+        3. HOVER: Hover on an element, value is not applicable and the position [x,y] is required.
+        4. ENTER: Enter operation, value and position are not applicable.
+        5. SCROLL: Scroll the screen, value is the direction to scroll and the position is not applicable.
+        6. ESC: ESCAPE operation, value and position are not applicable.
+        7. PRESS: Long click on an element, value is not applicable and the position [x,y] is required. 
         """,
-
     'phone': """
         1. INPUT: Type a string into an element, value is not applicable and the position [x,y] is required. 
         2. SWIPE: Swipe the screen, value is not applicable and the position [[x1,y1], [x2,y2]] is the start and end position of the swipe operation.
@@ -60,23 +56,30 @@ class ShowUIActor:
         """
     }
 
-    def __init__(self, model_path, output_callback, device=torch.device("cpu"), split='web', selected_screen=0):
+    def __init__(self, model_path, output_callback, device=torch.device("cpu"), split='desktop', selected_screen=0,
+                 max_pixels=1344, awq_4bit=False):
         self.device = device
         self.split = split
         self.selected_screen = selected_screen
         self.output_callback = output_callback
         
-        if not model_path:
-            model_path = "showlab/ShowUI-2B"
+        if not model_path or not os.path.exists(model_path) or not os.listdir(model_path):
+            if awq_4bit:
+                model_path = "showlab/ShowUI-2B-AWQ-4bit"
+            else:
+                model_path = "showlab/ShowUI-2B"
         
         self.model = Qwen2VLForConditionalGeneration.from_pretrained(
             model_path,
             torch_dtype=torch.bfloat16,
             device_map="cpu"
         ).to(self.device)
+        self.model.eval()
         
         self.min_pixels = 256 * 28 * 28
-        self.max_pixels = 1344 * 28 * 28
+        self.max_pixels = max_pixels * 28 * 28
+        # self.max_pixels = 1344 * 28 * 28
+        
         self.processor = AutoProcessor.from_pretrained(
             "Qwen/Qwen2-VL-2B-Instruct",
             # "./Qwen2-VL-2B-Instruct",
@@ -94,9 +97,9 @@ class ShowUIActor:
         task = messages
         
         # screenshot
-        sc, img_url = get_screenshot(selected_screen=self.selected_screen, resize=False)
-        img_url = str(img_url)
-        image_base64 = encode_image(img_url)
+        screenshot, screenshot_path = get_screenshot(selected_screen=self.selected_screen, resize=True, target_width=1920, target_height=1080)
+        screenshot_path = str(screenshot_path)
+        image_base64 = encode_image(screenshot_path)
         self.output_callback(f'Screenshot for {colorful_text_showui}:\n<img src="data:image/png;base64,{image_base64}">', sender="bot")
 
         # Use system prompt, task, and action history to build the messages
@@ -105,7 +108,7 @@ class ShowUIActor:
                 "role": "user",
                 "content": [
                     {"type": "text", "text": self.system_prompt},
-                    {"type": "image", "image": img_url, "min_pixels": self.min_pixels, "max_pixels": self.max_pixels},
+                    {"type": "image", "image": screenshot_path, "min_pixels": self.min_pixels, "max_pixels": self.max_pixels},
                     {"type": "text", "text": f"Task: {task}"}
                     # {"type": "text", "text": f"\nAction History: {self.action_history}}
                 ],
@@ -125,7 +128,9 @@ class ShowUIActor:
         )
         inputs = inputs.to(self.device)
         
-        generated_ids = self.model.generate(**inputs, max_new_tokens=128)
+        with torch.no_grad():
+            generated_ids = self.model.generate(**inputs, max_new_tokens=128)
+            
         generated_ids_trimmed = [
             out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
         ]
@@ -139,7 +144,6 @@ class ShowUIActor:
         # Return response in expected format
         response = {'content': output_text, 'role': 'assistant'}
         return response
-
 
 
     def parse_showui_output(self, output_text):
