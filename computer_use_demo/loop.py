@@ -169,17 +169,14 @@ def sampling_loop_sync(
             messages.append({"content": tool_result_content, "role": "user"})
 
     elif "ShowUI" in model:  # ShowUI loop
-        showui_loop_count = 0
         while True:
             # Step 1: Get VLM response
             start_time = time.time()
             vlm_response = planner(messages=messages)
-            print(f"[Iteration {showui_loop_count+1}] Time for planner (vlm_response): {time.time() - start_time:.4f}s")
 
             # Step 2: Extract next_action
             start_time = time.time()
             next_action = json.loads(vlm_response).get("Next Action")
-            print(f"[Iteration {showui_loop_count+1}] Time to parse next_action: {time.time() - start_time:.4f}s")
             
             yield next_action
             
@@ -187,7 +184,6 @@ def sampling_loop_sync(
             if next_action is None or next_action == "" or next_action == "None":
                 start_time = time.time()
                 final_sc, final_sc_path = get_screenshot(selected_screen=selected_screen)
-                print(f"[Iteration {showui_loop_count+1}] Time to get final screenshot: {time.time() - start_time:.4f}s")
 
                 output_callback(
                     f'No more actions from {colorful_text_vlm}. End of task. Final State:\n<img src="data:image/png;base64,{encode_image(str(final_sc_path))}">',
@@ -199,13 +195,10 @@ def sampling_loop_sync(
             # Step 4: Output action message
             start_time = time.time()
             output_callback(f"{colorful_text_vlm} sending action to {colorful_text_showui}:\n{next_action}", sender="bot")
-            if showui_loop_count == 1:
-                print(f"[Iteration {showui_loop_count+1}] Time to output callback message: {time.time() - start_time:.4f}s")
 
             # Step 5: Actor response
             start_time = time.time()
             actor_response = actor(messages=next_action)
-            print(f"[Iteration {showui_loop_count+1}] Time to get actor response: {time.time() - start_time:.4f}s")
             yield actor_response
 
             # Step 6: Executor steps
@@ -213,7 +206,6 @@ def sampling_loop_sync(
             for message, tool_result_content in executor(actor_response, messages):
                 time.sleep(0.5)
                 yield message
-            print(f"[Iteration {showui_loop_count+1}] Time for executor steps: {time.time() - start_time:.4f}s")
 
             # Step 7: Update messages
             start_time = time.time()
@@ -221,7 +213,6 @@ def sampling_loop_sync(
                             "content": ["History plan:" + str(json.loads(vlm_response)) +
                                         "History actions:" + str(actor_response["content"])]
                             })
-            print(f"[Iteration {showui_loop_count+1}] Time to append messages: {time.time() - start_time:.4f}s")
 
             print(f"End of loop {showui_loop_count+1}. Messages: {str(messages)[:100000]}. Total cost: $USD{planner.total_cost:.5f}")
 
