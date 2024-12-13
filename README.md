@@ -24,7 +24,7 @@
 For more information, you can visit our study on Claude 3.5 Computer Use [[project page]](https://computer-use-ootb.github.io). 🌐
 
 ## Update
-- **<span style="color:rgb(231, 183, 98)">Major Update!</span> [2024/12/04]** **Local Run🔥** is now live! Say hello to [**<span style="color:rgb(106, 158, 210)">S</span><span style="color:rgb(111, 163, 82)">h</span><span style="color:rgb(209, 100, 94)">o</span><span style="color:rgb(238, 171, 106)">w</span>UI**](https://github.com/showlab/ShowUI), a open-source 2B vision-language-action (VLA) model for GUI Agent. Now compatible with `"gpt-4o + ShowUI" (~200x cheaper)`*  & `"Qwen2-VL + ShowUI" (~30x cheaper)`* for only few cents for each task💰! <span style="color: grey; font-size: small;">*compared to Claude Computer Use</span>.
+- **Major Update! [2024/12/04]** **Local Run🔥** is now live! Say hello to [**<span style="color:rgb(106, 158, 210)">S</span><span style="color:rgb(111, 163, 82)">h</span><span style="color:rgb(209, 100, 94)">o</span><span style="color:rgb(238, 171, 106)">w</span>UI**](https://github.com/showlab/ShowUI), a open-source 2B vision-language-action (VLA) model for GUI Agent. Now compatible with `"gpt-4o + ShowUI" (~200x cheaper)`*  & `"Qwen2-VL + ShowUI" (~30x cheaper)`* for only few cents for each task💰! <span style="color: grey; font-size: small;">*compared to Claude Computer Use</span>.
 - **[2024/11/20]** We've added some examples to help you get hands-on experience with Claude 3.5 Computer Use.
 - **[2024/11/19]** Forget about the single-display limit set by Anthropic - you can now use **multiple displays** 🎉!
 - **[2024/11/18]** We've released a deep analysis of Claude 3.5 Computer Use: [https://arxiv.org/abs/2411.10323](https://arxiv.org/abs/2411.10323).
@@ -113,7 +113,7 @@ Open the website at http://localhost:7860/ (if you're controlling the computer i
 Enter the Anthropic API key (you can obtain it through this [website](https://console.anthropic.com/settings/keys)), then give commands to let the AI perform your tasks.
 
 
-## ShowUI Advanced Settings
+### ShowUI Advanced Settings
 
 We provide a 4-bit quantized ShowUI-2B model for cost-efficient inference (currently **only support CUDA devices**). To download the 4-bit quantized ShowUI-2B model:
 ```
@@ -124,17 +124,17 @@ Then, enable the quantized setting in the 'ShowUI Advanced Settings' dropdown me
 Besides, we also provide a slider to quickly adjust the `max_pixel` parameter in the ShowUI model. This controls the visual input size of the model and greatly affects the memory and inference speed.
 
 
+## 🖥️ Supported Systems
+- **Windows** (Claude ✅, ShowUI ✅)
+- **macOS** (Claude ✅, ShowUI ✅)
+
+## 👓 OOTB Iterface
 <div style="display: flex; align-items: center; gap: 10px;">
   <figure style="text-align: center;">
     <img src="./assets/gradio_interface.png" alt="Desktop Interface" style="width: auto; object-fit: contain;">
   </figure>
 </div>
 
-
-
-## 🖥️ Supported Systems
-- **Windows** (Claude ✅, ShowUI ✅)
-- **macOS** (Claude ✅, ShowUI ✅)
 
 ## ⚠️ Risks
 - **Potential Dangerous Operations by the Model**: The models' performance is still limited and may generate unintended or potentially harmful outputs. Recommend continuously monitoring the AI's actions. 
@@ -148,14 +148,15 @@ Besides, we also provide a slider to quickly adjust the `max_pixel` parameter in
   - [ ] **Simpler Installation**
   - [ ] **More Features**... 🚀
 - [ ] **Platform**
-  - [x] **Windows** 
-  - [x] **Mobile** (Send command)
+  - [x] **Windows**
   - [x] **macOS**
+  - [x] **Mobile** (Send command)
   - [ ] **Mobile** (Be controlled)
 - [ ] **Support for More MLLMs**
   - [x] **Claude 3.5 Sonnet** 🎵
   - [x] **GPT-4o**
   - [x] **Qwen2-VL**
+  - [ ] **Local MLLMs**
   - [ ] ...
 - [ ] **Improved Prompting Strategy**
   - [ ] Optimize prompts for cost-efficiency. 💡
