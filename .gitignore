@@ -14,3 +14,4 @@ __pycache__
 /Qwen*
 /install_tools/install_qwen*
 /dev_tools*
+test.ipynb
