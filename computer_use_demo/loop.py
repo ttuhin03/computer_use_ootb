@@ -171,18 +171,15 @@ def sampling_loop_sync(
     elif "ShowUI" in model:  # ShowUI loop
         while True:
             # Step 1: Get VLM response
-            start_time = time.time()
             vlm_response = planner(messages=messages)
 
             # Step 2: Extract next_action
-            start_time = time.time()
             next_action = json.loads(vlm_response).get("Next Action")
             
             yield next_action
             
             # Step 3: Check if no more actions
             if next_action is None or next_action == "" or next_action == "None":
-                start_time = time.time()
                 final_sc, final_sc_path = get_screenshot(selected_screen=selected_screen)
 
                 output_callback(
@@ -193,22 +190,18 @@ def sampling_loop_sync(
                 break
             
             # Step 4: Output action message
-            start_time = time.time()
             output_callback(f"{colorful_text_vlm} sending action to {colorful_text_showui}:\n{next_action}", sender="bot")
 
             # Step 5: Actor response
-            start_time = time.time()
             actor_response = actor(messages=next_action)
             yield actor_response
 
             # Step 6: Executor steps
-            start_time = time.time()
             for message, tool_result_content in executor(actor_response, messages):
                 time.sleep(0.5)
                 yield message
 
             # Step 7: Update messages
-            start_time = time.time()
             messages.append({"role": "user",
                             "content": ["History plan:" + str(json.loads(vlm_response)) +
                                         "History actions:" + str(actor_response["content"])]
@@ -218,33 +211,3 @@ def sampling_loop_sync(
 
             # Increment loop counter
             showui_loop_count += 1
-    
-    # elif "ShowUI" in model:  # ShowUI loop 
-    #     while True:
-    #         vlm_response = planner(messages=messages)
-            
-    #         next_action = json.loads(vlm_response).get("Next Action")
-    #         yield next_action
-            
-    #         if next_action == None or next_action == "" or next_action == "None":
-    #             final_sc, final_sc_path = get_screenshot(selected_screen=selected_screen)
-    #             output_callback(f'No more actions from {colorful_text_vlm}. End of task. Final State:\n<img src="data:image/png;base64,{encode_image(str(final_sc_path))}">',
-    #                             sender="bot")
-    #             yield None
-                        
-    #         output_callback(f"{colorful_text_vlm} sending action to {colorful_text_showui}:\n{next_action}", sender="bot")
-            
-    #         actor_response = actor(messages=next_action)
-    #         yield actor_response
-            
-    #         for message, tool_result_content in executor(actor_response, messages):
-    #             time.sleep(0.5)
-    #             yield message
-                
-    #         # since showui executor has no feedback for now, we use "actor_response" to represent its response
-    #         # update messages for the next loop
-    #         messages.append({"role": "user",
-    #                          "content": ["History plan:" + str(json.loads(vlm_response)) + 
-    #                                      "History actions:" + str(actor_response["content"])]
-    #                          })
-    #         print(f"End of loop. Messages: {str(messages)[:100000]}. Total cost: $USD{planner.total_cost:.5f}")
