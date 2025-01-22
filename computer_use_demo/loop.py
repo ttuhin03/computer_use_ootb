@@ -169,6 +169,7 @@ def sampling_loop_sync(
             messages.append({"content": tool_result_content, "role": "user"})
 
     elif "ShowUI" in model:  # ShowUI loop
+        showui_loop_count = 0
         while True:
             # Step 1: Get VLM response
             vlm_response = planner(messages=messages)
