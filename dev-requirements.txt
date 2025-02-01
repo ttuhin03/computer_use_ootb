@@ -21,3 +21,8 @@ qwen-vl-utils
 accelerate
 dashscope
 huggingface_hub
+
+#added for bachelorarbeit
+humancursor
+pyobjc
+human-typer

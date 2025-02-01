@@ -16,7 +16,14 @@ from screeninfo import get_monitors
 from PIL import ImageGrab, Image
 from functools import partial
 
+from humancursor import SystemCursor
+from human_typer import Human_typer
+import random
+
 from anthropic.types.beta import BetaToolComputerUse20241022Param
+
+from Quartz.CoreGraphics import CGEventCreateScrollWheelEvent, CGEventPost, kCGHIDEventTap
+from Quartz.CoreGraphics import kCGScrollEventUnitPixel
 
 from .base import BaseAnthropicTool, ToolError, ToolResult
 from .run import run
@@ -185,6 +192,22 @@ class ComputerTool(BaseAnthropicTool):
         self.bbox = bbox
         
 
+    def scroll_down(self,amount, steps=30, delay=0.02):
+        step_amount = amount // steps
+        for _ in range(steps):
+            event = CGEventCreateScrollWheelEvent(None, kCGScrollEventUnitPixel, 1, -step_amount)
+            CGEventPost(kCGHIDEventTap, event)
+            time.sleep(delay)
+
+    def scroll_up(self,amount, steps=30, delay=0.02):
+        step_amount = amount // steps
+        for _ in range(steps):
+            event = CGEventCreateScrollWheelEvent(None, kCGScrollEventUnitPixel, 1, step_amount)
+            CGEventPost(kCGHIDEventTap, event)
+            time.sleep(delay)
+
+
+
     async def __call__(
         self,
         *,
@@ -223,7 +246,8 @@ class ComputerTool(BaseAnthropicTool):
             print(f"mouse move to {x}, {y}")
             
             if action == "mouse_move":
-                pyautogui.moveTo(x, y)
+                cursor = SystemCursor()
+                cursor.move_to([x, y])
                 return ToolResult(output=f"Moved mouse to ({x}, {y})")
             elif action == "left_click_drag":
                 current_x, current_y = pyautogui.position()
@@ -244,15 +268,32 @@ class ComputerTool(BaseAnthropicTool):
                 for key in keys:
                     key = self.key_conversion.get(key.strip(), key.strip())
                     key = key.lower()
-                    pyautogui.keyDown(key)  # Press down each key
+                    if key == "pagedown":
+                        print('-----> Scrolling down')
+                        self.scroll_down(amount = 500)
+                    elif key == "pageup":
+                        print('-----> Scrolling up')
+                        self.scroll_up(amount = 500)
+                    else:
+                        pyautogui.keyDown(key)  # Press down each key
                 for key in reversed(keys):
                     key = self.key_conversion.get(key.strip(), key.strip())
                     key = key.lower()
-                    pyautogui.keyUp(key)    # Release each key in reverse order
+
+                    if key == "pagedown":
+                        pass
+                    elif key == "pageup":
+                        pass
+                    else:
+                        pyautogui.keyUp(key)    # Release each key in reverse order
                 return ToolResult(output=f"Pressed keys: {text}")
             
             elif action == "type":
-                pyautogui.typewrite(text, interval=TYPING_DELAY_MS / 1000)  # Convert ms to seconds
+                random_number = random.randint(150, 230)
+                print("CPM: ", random_number)
+                My_Typer = Human_typer(keyboard_layout = "qwerty", average_wpm = 190)
+                My_Typer.keyboard_type(text)
+
                 screenshot_base64 = (await self.screenshot()).base64_image
                 return ToolResult(output=text, base64_image=screenshot_base64)
 
@@ -331,7 +372,8 @@ class ComputerTool(BaseAnthropicTool):
             print(f"mouse move to {x}, {y}")
             
             if action == "mouse_move":
-                pyautogui.moveTo(x, y)
+                cursor = SystemCursor()
+                cursor.move_to([x, y])
                 return ToolResult(output=f"Moved mouse to ({x}, {y})")
             elif action == "left_click_drag":
                 current_x, current_y = pyautogui.position()
@@ -352,15 +394,31 @@ class ComputerTool(BaseAnthropicTool):
                 for key in keys:
                     key = self.key_conversion.get(key.strip(), key.strip())
                     key = key.lower()
-                    pyautogui.keyDown(key)  # Press down each key
+                    if key == "pagedown":
+                        print('-----> Scrolling down')
+                        self.scroll_down(amount = 500)
+                    elif key == "pageup":
+                        print('-----> Scrolling up')
+                        self.scroll_up(amount = 500)
+                    else:
+                        pyautogui.keyDown(key)  # Press down each key
                 for key in reversed(keys):
                     key = self.key_conversion.get(key.strip(), key.strip())
                     key = key.lower()
-                    pyautogui.keyUp(key)    # Release each key in reverse order
+                    if key == "pagedown":
+                        pass
+                    elif key == "pageup":
+                        pass
+                    else:
+                        pyautogui.keyUp(key)    # Release each key in reverse order
                 return ToolResult(output=f"Pressed keys: {text}")
             
             elif action == "type":
-                pyautogui.typewrite(text, interval=TYPING_DELAY_MS / 1000)  # Convert ms to seconds
+                #Handle normal Text entry Keys to enter like a Human
+                random_number = random.randint(150, 230)
+                print("CPM: ", random_number)
+                My_Typer = Human_typer(keyboard_layout = "qwerty", average_wpm = random_number)
+                My_Typer.keyboard_type(text)
                 return ToolResult(output=text)
 
         if action in (
