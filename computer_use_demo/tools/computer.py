@@ -22,8 +22,6 @@ import random
 
 from anthropic.types.beta import BetaToolComputerUse20241022Param
 
-from Quartz.CoreGraphics import CGEventCreateScrollWheelEvent, CGEventPost, kCGHIDEventTap
-from Quartz.CoreGraphics import kCGScrollEventUnitPixel
 
 from .base import BaseAnthropicTool, ToolError, ToolResult
 from .run import run
@@ -192,19 +190,6 @@ class ComputerTool(BaseAnthropicTool):
         self.bbox = bbox
         
 
-    def scroll_down(self,amount, steps=30, delay=0.02):
-        step_amount = amount // steps
-        for _ in range(steps):
-            event = CGEventCreateScrollWheelEvent(None, kCGScrollEventUnitPixel, 1, -step_amount)
-            CGEventPost(kCGHIDEventTap, event)
-            time.sleep(delay)
-
-    def scroll_up(self,amount, steps=30, delay=0.02):
-        step_amount = amount // steps
-        for _ in range(steps):
-            event = CGEventCreateScrollWheelEvent(None, kCGScrollEventUnitPixel, 1, step_amount)
-            CGEventPost(kCGHIDEventTap, event)
-            time.sleep(delay)
 
 
 
@@ -268,24 +253,24 @@ class ComputerTool(BaseAnthropicTool):
                 for key in keys:
                     key = self.key_conversion.get(key.strip(), key.strip())
                     key = key.lower()
-                    if key == "pagedown":
-                        print('-----> Scrolling down')
-                        self.scroll_down(amount = 500)
-                    elif key == "pageup":
-                        print('-----> Scrolling up')
-                        self.scroll_up(amount = 500)
-                    else:
-                        pyautogui.keyDown(key)  # Press down each key
+                    #if key == "pagedown":
+                    #    print('-----> Scrolling down')
+                    #    self.scroll_down(amount = 500)
+                    #elif key == "pageup":
+                    #    print('-----> Scrolling up')
+                    #    self.scroll_up(amount = 500)
+                    #else:
+                    pyautogui.keyDown(key)  # Press down each key
                 for key in reversed(keys):
                     key = self.key_conversion.get(key.strip(), key.strip())
                     key = key.lower()
 
-                    if key == "pagedown":
-                        pass
-                    elif key == "pageup":
-                        pass
-                    else:
-                        pyautogui.keyUp(key)    # Release each key in reverse order
+                    #if key == "pagedown":
+                    #    pass
+                    #elif key == "pageup":
+                    #    pass
+                    #else:
+                    pyautogui.keyUp(key)    # Release each key in reverse order
                 return ToolResult(output=f"Pressed keys: {text}")
             
             elif action == "type":
@@ -394,23 +379,23 @@ class ComputerTool(BaseAnthropicTool):
                 for key in keys:
                     key = self.key_conversion.get(key.strip(), key.strip())
                     key = key.lower()
-                    if key == "pagedown":
-                        print('-----> Scrolling down')
-                        self.scroll_down(amount = 500)
-                    elif key == "pageup":
-                        print('-----> Scrolling up')
-                        self.scroll_up(amount = 500)
-                    else:
-                        pyautogui.keyDown(key)  # Press down each key
+                    #if key == "pagedown":
+                    #    print('-----> Scrolling down')
+                    #    self.scroll_down(amount = 500)
+                    #elif key == "pageup":
+                    #    print('-----> Scrolling up')
+                    #    self.scroll_up(amount = 500)
+                    #else:
+                    pyautogui.keyDown(key)  # Press down each key
                 for key in reversed(keys):
                     key = self.key_conversion.get(key.strip(), key.strip())
                     key = key.lower()
-                    if key == "pagedown":
-                        pass
-                    elif key == "pageup":
-                        pass
-                    else:
-                        pyautogui.keyUp(key)    # Release each key in reverse order
+                    #if key == "pagedown":
+                    #    pass
+                    #elif key == "pageup":
+                    #    pass
+                    #else:
+                    pyautogui.keyUp(key)    # Release each key in reverse order
                 return ToolResult(output=f"Pressed keys: {text}")
             
             elif action == "type":
