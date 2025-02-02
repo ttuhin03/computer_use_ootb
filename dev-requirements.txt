@@ -25,4 +25,4 @@ huggingface_hub
 #added for bachelorarbeit
 humancursor
 #pyobjc
-human-typer
+keyboard
