@@ -38,9 +38,7 @@ from computer_use_demo.tools.colorful_text import colorful_text_showui, colorful
 from computer_use_demo.tools.screen_capture import get_screenshot
 from computer_use_demo.gui_agent.llm_utils.oai import encode_image
 
-
 BETA_FLAG = "computer-use-2024-10-22"
-
 
 class APIProvider(StrEnum):
     ANTHROPIC = "anthropic"
@@ -48,7 +46,6 @@ class APIProvider(StrEnum):
     VERTEX = "vertex"
     OPENAI = "openai"
     QWEN = "qwen"
-
 
 PROVIDER_TO_DEFAULT_MODEL_NAME: dict[APIProvider, str] = {
     APIProvider.ANTHROPIC: "claude-3-5-sonnet-20241022",
@@ -58,6 +55,8 @@ PROVIDER_TO_DEFAULT_MODEL_NAME: dict[APIProvider, str] = {
     # APIProvider.QWEN: "qwen2vl",
 }
 
+# Maximum number of messages to keep in context to avoid a slow-down.
+MAX_CONTEXT_MESSAGES = 20
 
 def sampling_loop_sync(
     *,
@@ -79,9 +78,12 @@ def sampling_loop_sync(
     Synchronous agentic sampling loop for the assistant/tool interaction of computer use.
     """
     
-    if torch.cuda.is_available(): device = torch.device("cuda")
-    elif torch.backends.mps.is_available(): device = torch.device("mps")
-    else: device = torch.device("cpu") # support: 'cpu', 'mps', 'cuda'
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
+    else:
+        device = torch.device("cpu") # support: 'cpu', 'mps', 'cuda'
     print(f"Model inited on device: {device}.")
     
     if model == "claude-3-5-sonnet-20241022":
@@ -104,7 +106,6 @@ def sampling_loop_sync(
             selected_screen=selected_screen
         )
     elif model in ["gpt-4o + ShowUI", "qwen2-vl-max + ShowUI", "qwen-vl-7b-instruct + ShowUI"]:
-        
         if model == "qwen-vl-7b-instruct + ShowUI":
             planner = LocalVLMPlanner(
                 model=model,
@@ -156,18 +157,22 @@ def sampling_loop_sync(
     
     print(f"Start the message loop. User messages: {messages}")
     
-    if "claude" in model: # Anthropic loop
+    if "claude" in model:  # Anthropic loop
         while True:
             response = actor(messages=messages)
 
             for message, tool_result_content in executor(response, messages):
                 yield message
-        
+            
             if not tool_result_content:
                 return messages
 
             messages.append({"content": tool_result_content, "role": "user"})
-
+            
+            # Here, we limit the context size to prevent the prompt from growing indefinitely
+            if len(messages) > MAX_CONTEXT_MESSAGES:
+                messages = messages[-MAX_CONTEXT_MESSAGES:]
+    
     elif "ShowUI" in model:  # ShowUI loop
         showui_loop_count = 0
         while True:
@@ -209,6 +214,10 @@ def sampling_loop_sync(
                             })
 
             print(f"End of loop {showui_loop_count+1}. Messages: {str(messages)[:100000]}. Total cost: $USD{planner.total_cost:.5f}")
+
+            # Limit the context size here as well
+            if len(messages) > MAX_CONTEXT_MESSAGES:
+                messages = messages[-MAX_CONTEXT_MESSAGES:]
 
             # Increment loop counter
             showui_loop_count += 1
