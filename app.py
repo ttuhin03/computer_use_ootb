@@ -589,4 +589,26 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     # chat_input.submit(process_input, [chat_input, state], chatbot)
     submit_button.click(process_input, [chat_input, state], chatbot)
 
-demo.launch(share=True, allowed_paths=["./"], server_port=7888)  # TODO: allowed_paths
+
+
+import cProfile
+import pstats
+import sys
+
+profiler = cProfile.Profile()
+profiler.enable()
+
+try:
+    demo.launch(share=True, allowed_paths=["./"], server_port=7888)  # TODO: allowed_paths
+except KeyboardInterrupt:
+        # Optionally handle or log additional information here before saving.
+        pass
+finally:
+        profiler.disable()
+        output_file = "profile_output.prof"
+        profiler.dump_stats(output_file)
+        print(f"Profile stats saved to {output_file}")
+        # Optionally print a summary
+        stats = pstats.Stats(profiler).sort_stats(pstats.SortKey.CUMULATIVE)
+        stats.print_stats(10)
+        sys.exit(0)
