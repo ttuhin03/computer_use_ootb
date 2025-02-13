@@ -276,7 +276,7 @@ class ComputerTool(BaseAnthropicTool):
             elif action == "type":
                 random_number = random.randint(150, 230)
                 print("CPM: ", random_number)
-                My_Typer = Human_typer(keyboard_layout = "qwerty", average_wpm = 190)
+                My_Typer = Human_typer(keyboard_layout = "qwerty", average_wpm = 270)
                 My_Typer.keyboard_type(text)
 
                 screenshot_base64 = (await self.screenshot()).base64_image
@@ -400,7 +400,7 @@ class ComputerTool(BaseAnthropicTool):
             
             elif action == "type":
                 #Handle normal Text entry Keys to enter like a Human
-                random_number = random.randint(150, 230)
+                random_number = random.randint(250, 270)
                 print("CPM: ", random_number)
                 My_Typer = Human_typer(keyboard_layout = "qwerty", average_wpm = random_number)
                 My_Typer.keyboard_type(text)
