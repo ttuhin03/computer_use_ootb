@@ -97,11 +97,24 @@ class Human_typer():
         for index in errors_index_list:
             if text[index] != " ":
                 if random() > 0.3:
-                    modified_letter = self.get_random_close_neighbor(text[index], self.find_layout(text[index]))
+
+                    layout = self.find_layout(text[index])
+                    if layout:  # Only get a random neighbor if layout exists
+                        modified_letter = self.get_random_close_neighbor(text[index], layout)
+                    else:
+                        modified_letter = text[index]
+                    
                     modification_list.append([index, text[index], modified_letter, "MODIFY"])
                     text = text[:index] + modified_letter + text[index + 1:]
                 else:
-                    modified_letter = self.get_random_close_neighbor(text[index], self.find_layout(text[index]))
+
+                    layout = self.find_layout(text[index])
+                    if layout:  # Only get a random neighbor if layout exists
+                        modified_letter = self.get_random_close_neighbor(text[index], layout)
+                    else:
+                        modified_letter = text[index]
+
+                    
                     modification_list.append([index, text[index], modified_letter, "ADD"])
                     text = text[:index + 1] + modified_letter + text[index + 1:]     
         return text, modification_list
