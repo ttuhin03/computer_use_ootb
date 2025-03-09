@@ -170,8 +170,8 @@ def sampling_loop_sync(
             messages.append({"content": tool_result_content, "role": "user"})
             
             # Here, we limit the context size to prevent the prompt from growing indefinitely
-            if len(messages) > MAX_CONTEXT_MESSAGES:
-                messages = messages[-MAX_CONTEXT_MESSAGES:]
+            #if len(messages) > MAX_CONTEXT_MESSAGES:
+            #    messages = messages[-MAX_CONTEXT_MESSAGES:]
     
     elif "ShowUI" in model:  # ShowUI loop
         showui_loop_count = 0
@@ -216,8 +216,8 @@ def sampling_loop_sync(
             print(f"End of loop {showui_loop_count+1}. Messages: {str(messages)[:100000]}. Total cost: $USD{planner.total_cost:.5f}")
 
             # Limit the context size here as well
-            if len(messages) > MAX_CONTEXT_MESSAGES:
-                messages = messages[-MAX_CONTEXT_MESSAGES:]
+            #if len(messages) > MAX_CONTEXT_MESSAGES:
+            #    messages = messages[-MAX_CONTEXT_MESSAGES:]
 
             # Increment loop counter
             showui_loop_count += 1
